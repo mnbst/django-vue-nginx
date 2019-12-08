@@ -1,0 +1,6 @@
+web-app/bin/*
+web-app/include/*
+web-app/lib/*
+lib/*
+web-app/console/static/*
+sample/*
