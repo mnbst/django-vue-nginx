@@ -2,8 +2,11 @@ version: "3.7"
 
 services:
   web:
-    build: ./app
-    command: python manage.py runserver 0.0.0.0:8000
+    restart: on-failure:1
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - frontend:/usr/src/app/frontend/
       - ./app/frontend/src:/usr/src/app/frontend/src
@@ -12,17 +15,20 @@ services:
       - 8000:8000
     env_file:
       - ./.env.dev
+    depends_on:
+      - db
   db:
+    restart: on-failure:1
     image: postgres:12.0-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - ./pgdata/:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=hello_django
-      - POSTGRES_PASSWORD=hello_django
-      - POSTGRES_DB=hello_django_dev
+      POSTGRES_USER: hello_django
+      POSTGRES_PASSWORD: hello_django
+      POSTGRES_DB: hello_django_dev
   vue:
+    restart: on-failure:1
     build: ./app/frontend
-    restart: always
     volumes:
       - frontend:/usr/src/app/frontend/
       - ./app/frontend/src:/usr/src/app/frontend/src
@@ -35,6 +41,5 @@ services:
       - CHOKIDAR_USEPOLLING=true
 
 volumes:
-  postgres_data:
   node_mod:
-  frontend:  
+  frontend:

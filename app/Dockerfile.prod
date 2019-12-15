@@ -39,6 +39,7 @@ RUN mkdir -p /home/app
 # frontend
 RUN apk add --update nodejs npm &&\
     npm i -g yarn
+RUN apk add binutils libc-dev
 
 # create the app user
 RUN addgroup -S app && adduser -S app -G app
