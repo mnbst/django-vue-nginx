@@ -38,7 +38,7 @@ module.exports = {
         config
             .plugin('BundleTracker')
             .use(BundleTracker, [{
-                filename: '../frontend/webpack-stats.json'
+                filename: './webpack-stats.json'
             }]);
 
         config.resolve.alias
@@ -46,11 +46,11 @@ module.exports = {
 
         config.devServer
             .public('http://localhost:8080')
-            .host('localhost')
+            .host('0.0.0.0')
             .port(8080)
             .hotOnly(true)
             .watchOptions({
-                poll: 1000
+                poll: 1000,
             })
             .https(false)
             .headers({

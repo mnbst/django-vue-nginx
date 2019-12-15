@@ -20,12 +20,13 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+
 SECRET_KEY = os.environ.get("SECRET_KEY")
+# '!0$5@7$m5n1-hz+p!vm30#@8cahlm2w4waa=p0o6q8s6=7u-v0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 # True
-
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
 # Application definition
@@ -47,9 +48,7 @@ INSTALLED_APPS = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'public'),
-)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'public'), )
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -88,12 +87,18 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
-        "NAME": os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
-        "USER": os.environ.get("SQL_USER", "user"),
-        "PASSWORD": os.environ.get("SQL_PASSWORD", "password"),
-        "HOST": os.environ.get("SQL_HOST", "localhost"),
-        "PORT": os.environ.get("SQL_PORT", "5432"),
+        "ENGINE":
+        os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
+        "NAME":
+        os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
+        "USER":
+        os.environ.get("SQL_USER", "user"),
+        "PASSWORD":
+        os.environ.get("SQL_PASSWORD", "password"),
+        "HOST":
+        os.environ.get("SQL_HOST", "localhost"),
+        "PORT":
+        os.environ.get("SQL_PORT", "5432"),
     }
 }
 

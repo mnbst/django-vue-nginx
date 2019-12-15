@@ -1,7 +1,5 @@
 <template>
-  <div id="DataCollector">
-      
-  </div>
+  <div id="DataCollector">d</div>
 </template>
 
 <script>
