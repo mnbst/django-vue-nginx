@@ -3,3 +3,4 @@ include/*
 lib/*
 web-app/console/static/*
 sample/*
+pgdata
