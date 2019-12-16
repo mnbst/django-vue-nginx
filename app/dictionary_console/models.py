@@ -1,5 +1,5 @@
 from django.db import models
-from jsonfield import JSONField
+from django.contrib.postgres.fields import ArrayField
 
 
 class WordInCaption(models.Model):
@@ -29,8 +29,8 @@ class Caption(models.Model):
     start_time = models.IntegerField()
     end_time = models.IntegerField()
     text = models.CharField(max_length=100)
-    word = JSONField(default=[])
-    word_imi = JSONField(default=[])
+    word = ArrayField(models.CharField(max_length=20)),
+    word_imi = ArrayField(models.CharField(max_length=20)),
 
     def __str__(self):
         num = self.index

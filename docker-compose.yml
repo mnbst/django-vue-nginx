@@ -10,7 +10,7 @@ services:
     volumes:
       - frontend:/usr/src/app/frontend/
       - ./app/frontend/src:/usr/src/app/frontend/src
-      - node_mod:/usr/src/app/frontend/node_modules/
+      - ./app/frontend/package.json:/usr/src/app/frontend/packege.json
     ports:
       - 8000:8000
     env_file:
@@ -32,7 +32,7 @@ services:
     volumes:
       - frontend:/usr/src/app/frontend/
       - ./app/frontend/src:/usr/src/app/frontend/src
-      - node_mod:/usr/src/app/frontend/node_modules/
+      - ./app/frontend/package.json:/usr/src/app/frontend/packege.json
     ports:
       - 8080:8080
     stdin_open: true
@@ -41,5 +41,4 @@ services:
       - CHOKIDAR_USEPOLLING=true
 
 volumes:
-  node_mod:
   frontend:

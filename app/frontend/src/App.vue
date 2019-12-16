@@ -23,9 +23,9 @@
               </v-list-item-title>
             </v-list-item>
 
-            <v-list-item @click="drawer = false" to="/data_collector">
+            <v-list-item @click="drawer = false" to="/fetch_data">
               <v-list-item-title>
-                <h4>data collector</h4>
+                <h4>fetch data</h4>
               </v-list-item-title>
             </v-list-item>
           </v-list-item-group>
@@ -44,7 +44,7 @@
 <script>
 import Home from "./components/menu/Home";
 import VideoSelect from "./components/menu/VideoSelect";
-import DataCollector from "./components/menu/DataCollector";
+import FetchData from "./fetch/FetchData";
 import Vue from "vue";
 import VueRouter from "vue-router";
 
@@ -53,7 +53,7 @@ Vue.use(VueRouter);
 const routes = [
   { path: "/", component: Home },
   { path: "/video_select", component: VideoSelect },
-  { path: "/data_collector", component: DataCollector }
+  { path: "/fetch_data", component: FetchData }
 ];
 
 const router = new VueRouter({ routes });
