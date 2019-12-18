@@ -1,7 +1,0 @@
-bin
-include
-lib
-web-app/console/static/*
-sample/*
-pgdata
-get_caption_app
