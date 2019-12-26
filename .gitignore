@@ -1,6 +1,4 @@
-bin
-include/*
-lib
-pgdata
+env
+data
 get_caption_app
 .vscode/*

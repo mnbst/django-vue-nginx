@@ -2,6 +2,13 @@
 
 ## Getting Started
 
+### env
+```
+pyenv global 3.7.2 
+virtualenv env 
+pip install -r requirements.txt 
+``` 
+
 ### prod 
 ```
 docker-compose -f docker-compose.prod.yml up -d --build

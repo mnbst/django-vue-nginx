@@ -29,8 +29,8 @@ class Caption(models.Model):
     start_time = models.IntegerField()
     end_time = models.IntegerField()
     text = models.CharField(max_length=100)
-    word = ArrayField(models.CharField(max_length=20)),
-    word_imi = ArrayField(models.CharField(max_length=20)),
+    word = ArrayField(models.CharField(max_length=20))
+    word_imi = ArrayField(models.CharField(max_length=20))
 
     def __str__(self):
         num = self.index
