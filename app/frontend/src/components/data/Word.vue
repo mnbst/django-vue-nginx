@@ -71,10 +71,10 @@
             </v-col>
             <v-dialog v-model="confirmationDialog" max-width="290">
               <v-card>
-                <v-card-title class="headline">{{deleteWord.word}}を削除しますか？</v-card-title>
+                <v-card-title class="headline">{{Word.word}}を削除しますか？</v-card-title>
                 <v-card-actions>
                   <v-btn color="green darken-1" text @click="confirmationDialog = false">Disagree</v-btn>
-                  <v-btn color="green darken-1" text @click="deleteItem(deleteWord)">Agree</v-btn>
+                  <v-btn color="green darken-1" text @click="deleteItem(Word)">Agree</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -99,11 +99,6 @@ export default {
       word: "",
       word_imi: ""
     },
-    deleteWord: {
-      word_ini: "",
-      word: "",
-      word_imi: ""
-    }
   }),
   mounted() {
     this.$store.dispatch("loadWords");
@@ -113,7 +108,7 @@ export default {
   },
   methods: {
     showConfirmationDialog: function(item) {
-      this.deleteWord = item;
+      this.Word = item;
       this.confirmationDialog = true;
     },
     add: function() {
