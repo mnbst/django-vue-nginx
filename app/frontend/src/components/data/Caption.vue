@@ -3,8 +3,75 @@
     <v-container>
       <v-col cols="12">
         <v-card color="white align-center">
-          <v-card-title class="headline font-weight-bold mx-auto">caption</v-card-title>
-          <v-col v-for="item in caption" :key="item.href_index">
+          <v-row>
+            <v-col cols="12">
+              <v-card-title class="justify-center">
+                <p class="headline font-weight-bold">caption</p>
+              </v-card-title>
+              <v-card-actions class="justify-center">
+                <v-dialog v-model="dialog" persistent max-width="600px">
+                    <template v-slot:activator="{ on }">
+                      <v-btn color="orange font-weight-bold" v-on="on">字幕追加</v-btn>
+                    </template>
+                    <v-card>
+                      <v-card-title>
+                        <span class="headline">User Profile</span>
+                      </v-card-title>
+                      <v-card-text>
+                        <v-container>
+                          <v-row>
+                            <v-col cols="12" sm="6" md="4">
+                              <v-text-field label="Legal first name*" required></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6" md="4">
+                              <v-text-field
+                                label="Legal middle name"
+                                hint="example of helper text only on focus"
+                              ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6" md="4">
+                              <v-text-field
+                                label="Legal last name*"
+                                hint="example of persistent helper text"
+                                persistent-hint
+                                required
+                              ></v-text-field>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-text-field label="Email*" required></v-text-field>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-text-field label="Password*" type="password" required></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                              <v-select
+                                :items="['0-17', '18-29', '30-54', '54+']"
+                                label="Age*"
+                                required
+                              ></v-select>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                              <v-autocomplete
+                                :items="['Skiing', 'Ice hockey', 'Soccer', 'Basketball', 'Hockey', 'Reading', 'Writing', 'Coding', 'Basejump']"
+                                label="Interests"
+                                multiple
+                              ></v-autocomplete>
+                            </v-col>
+                          </v-row>
+                        </v-container>
+                        <small>*indicates required field</small>
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
+                        <v-btn color="blue darken-1" text @click="dialog = false">Save</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-dialog>
+              </v-card-actions>
+            </v-col>
+          </v-row>
+          <v-col v-for="item in captions" :key="item.href_index">
             <v-card class="mx-auto d-flex flex-wrap align-center" max-width="800">
               <v-card-title class="headline font-weight-bold mx-auto">{{item.href_index}}</v-card-title>
               <v-col cols="12" sm="12">
@@ -53,6 +120,9 @@ import { mapState } from "vuex";
 
 export default {
   name: "Caption",
+  data: () => ({
+    dialog: false
+  }),
   status: {
     type: String,
     required: true,
@@ -66,7 +136,7 @@ export default {
     this.$store.dispatch("loadCaptions");
   },
   computed: {
-    ...mapState(["caption"])
+    ...mapState(["captions"])
   }
 };
 </script>

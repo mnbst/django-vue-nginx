@@ -4,7 +4,7 @@
 
 ### env
 ```
-pyenv global 3.7.2 
+pyenv global 3.7.5 
 virtualenv env 
 pip install -r requirements.txt 
 ``` 

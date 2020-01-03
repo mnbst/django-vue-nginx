@@ -20,14 +20,16 @@ services:
       - db
   db:
     container_name: postgres
-    restart: on-failure:1
+    restart: always
     image: postgres:12.0-alpine
+    ports:
+      - 15432:5432
     environment:
       POSTGRES_USER: hello_django
       POSTGRES_PASSWORD: hello_django
       POSTGRES_DB: hello_django_dev
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data/:/var/lib/postgresql/data
   vue:
     container_name: vuejs
     restart: on-failure:1
@@ -45,4 +47,3 @@ services:
 
 volumes:
   frontend:
-  postgres_data:

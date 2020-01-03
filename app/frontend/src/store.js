@@ -6,9 +6,9 @@ Vue.use(vuex, axios)
 
 export default new vuex.Store({
     state: {
-        word: [],
-        video: [],
-        caption: []
+        words: [],
+        videos: [],
+        captions: []
     },
     actions: {
         loadWords({
@@ -59,19 +59,19 @@ export default new vuex.Store({
             state,
             words,
         ) {
-            state.word = words;
+            state.words = words;
         },
         SET_VIDEOS(
             state,
             videos,
         ) {
-            state.video = videos;
+            state.videos = videos;
         },
         SET_CAPTIONS(
             state,
             captions,
         ) {
-            state.caption = captions;
+            state.captions = captions;
         }
     }
 })

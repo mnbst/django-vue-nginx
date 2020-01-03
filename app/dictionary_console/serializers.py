@@ -21,4 +21,5 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Video
         fields = ('id', 'url', 'video_href', 'video_title', 'video_img',
-                  'video_time', 'youtubeID', 'video_update_time')
+                  'video_time', 'video_genre', 'youtubeID',
+                  'video_update_time')

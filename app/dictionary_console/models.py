@@ -42,6 +42,7 @@ class Video(models.Model):
     video_img = models.CharField(max_length=20)
     video_time = models.CharField(max_length=10)
     video_title = models.CharField(max_length=50)
+    video_genre = ArrayField(models.CharField(max_length=20))
     youtubeID = models.CharField(max_length=20)
     video_update_time = models.DateField(auto_now=False, auto_now_add=False)
 

@@ -21,11 +21,11 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY =os.environ.get("SECRET_KEY") 
 # '!0$5@7$m5n1-hz+p!vm30#@8cahlm2w4waa=p0o6q8s6=7u-v0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.environ.get("DEBUG", default=0))
+DEBUG =int(os.environ.get("DEBUG", default=0)) 
 # True
 ALLOWED_HOSTS = ['*']
 # os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
