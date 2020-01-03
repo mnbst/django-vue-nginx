@@ -1,0 +1,4 @@
+env
+get_caption_app
+.vscode/*
+postgres_data
