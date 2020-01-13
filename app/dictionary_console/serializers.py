@@ -22,4 +22,4 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
         model = Video
         fields = ('id', 'url', 'video_href', 'video_title', 'video_img',
                   'video_time', 'video_genre', 'youtubeID',
-                  'video_update_time')
+                  'video_upload_date')

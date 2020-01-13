@@ -10,10 +10,8 @@
                   <p class="headline font-weight-bold">word</p>
                 </v-card-title>
                 <v-card-actions class="justify-center">
+                  <v-btn color="orange font-weight-bold" @click="showCreateDialog">単語追加</v-btn>
                   <v-dialog v-model="dialog" persistent max-width="600">
-                    <template v-slot:activator="{ on }">
-                      <v-btn color="orange font-weight-bold" v-on="on">単語追加</v-btn>
-                    </template>
                     <v-card>
                       <v-card-title>
                         <span class="headline">単語情報</span>
@@ -98,7 +96,7 @@ export default {
       word_ini: "",
       word: "",
       word_imi: ""
-    },
+    }
   }),
   mounted() {
     this.$store.dispatch("loadWords");
@@ -107,6 +105,14 @@ export default {
     ...mapState(["words"])
   },
   methods: {
+    showCreateDialog: function() {
+      this.Word = {
+        word_ini: "",
+        word: "",
+        word_imi: ""
+      };
+      this.dialog = true;
+    },
     showConfirmationDialog: function(item) {
       this.Word = item;
       this.confirmationDialog = true;

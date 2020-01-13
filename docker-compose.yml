@@ -3,7 +3,7 @@ version: "3.7"
 services:
   web:
     container_name: django
-    restart: on-failure:1
+    restart: always
     build:
       context: ./app
       dockerfile: Dockerfile
@@ -22,16 +22,14 @@ services:
     container_name: postgres
     restart: always
     image: postgres:12.0-alpine
-    ports:
-      - 15432:5432
     environment:
       POSTGRES_USER: hello_django
       POSTGRES_PASSWORD: hello_django
       POSTGRES_DB: hello_django_dev
     volumes:
       - ./postgres_data/:/var/lib/postgresql/data
-  vue:
-    container_name: vuejs
+  frontend:
+    container_name: vue
     restart: on-failure:1
     build: ./app/frontend
     volumes:

@@ -1,13 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-
-
-class WordInCaption(models.Model):
-    word = models.CharField(max_length=50, unique=True)
-    word_imi = models.CharField(max_length=120, default='default')
-
-    class Meta:
-        abstract = True
+from django.utils.datetime_safe import datetime
 
 
 class Word(models.Model):
@@ -20,7 +13,7 @@ class Word(models.Model):
 
 
 class Caption(models.Model):
-    video_href = models.TextField(max_length=10)
+    video_href = models.CharField(max_length=10)
     index = models.IntegerField()
     href_index = models.CharField(max_length=20,
                                   default=str(video_href) + f'[{index}]',
@@ -44,7 +37,7 @@ class Video(models.Model):
     video_title = models.CharField(max_length=50)
     video_genre = ArrayField(models.CharField(max_length=20))
     youtubeID = models.CharField(max_length=20)
-    video_update_time = models.DateField(auto_now=False, auto_now_add=False)
+    video_upload_date = models.DateTimeField()
 
     def __str__(self):
         return self.video_href

@@ -1,9 +1,6 @@
 FROM node:13.3-alpine
 
-RUN apk update \
-    && apk add --update nodejs npm \
-    && npm install -g yarn  
-    #&& npm install -g @vue/cli@latest               
+RUN apk add --update nodejs npm                
 
 # set work directory
 WORKDIR /usr/src/app/frontend
@@ -11,4 +8,4 @@ WORKDIR /usr/src/app/frontend
 # copy project
 COPY . .
 
-CMD [ "yarn","serve" ]
+CMD [ "npm","run","serve" ]
