@@ -12,8 +12,8 @@ export default new vuex.Store({
     },
     actions: {
         loadWords({
-                      commit
-                  }) {
+            commit
+        }) {
             axios.get('/api/words').then(data => {
                 let words = data.data
                 commit('SET_WORDS', words)
@@ -22,8 +22,8 @@ export default new vuex.Store({
             })
         },
         loadVideos({
-                       commit
-                   }) {
+            commit
+        }) {
             axios.get('/api/videos').then(data => {
                 let videos = data.data
                 for (let k in videos) {
@@ -35,8 +35,8 @@ export default new vuex.Store({
             })
         },
         loadCaptions({
-                         commit
-                     }) {
+            commit
+        }) {
             axios.get('/api/captions').then(data => {
                 let captions = data.data
                 commit('SET_CAPTIONS', captions)

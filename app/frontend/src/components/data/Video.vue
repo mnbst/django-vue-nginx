@@ -33,7 +33,14 @@
                               <v-text-field label="video_img*" required v-model="Video.video_img"></v-text-field>
                             </v-col>
                             <v-col cols="12">
-                              <v-text-field label="vieo_time*" required v-model="Video.video_time"></v-text-field>
+                              <v-text-field
+                                label="vieo_time*"
+                                min="0"
+                                step="1"
+                                type="number"
+                                required
+                                v-model="Video.video_time"
+                              ></v-text-field>
                             </v-col>
                             <v-col cols="2">
                               <v-text-field
@@ -97,7 +104,13 @@
                 </v-col>
                 <v-col cols="12" sm="12">
                   <h3>video_time</h3>
-                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_time"></v-text-field>
+                  <v-text-field
+                    class="my-n2 mb-n7 pa-0"
+                    min="0"
+                    step="1"
+                    type="number"
+                    v-model="item.video_time"
+                  ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12">
                   <h3>youtubeID</h3>
@@ -132,8 +145,8 @@
                 </v-col>
                 <v-col cols="12" sm="12">
                   <v-row>
-                    <v-btn class="ml-4 primary" v-on:click="modify(item)">修正</v-btn>
-                    <v-btn class="ml-4 error" v-on:click="showConfirmationDialog(item)">削除</v-btn>
+                    <v-btn class="ml-3 primary" v-on:click="modify(item)">修正</v-btn>
+                    <v-btn class="ml-4" color="red" v-on:click="showConfirmationDialog(item)">削除</v-btn>
                   </v-row>
                 </v-col>
               </v-card>
@@ -171,7 +184,7 @@ export default {
       video_href: "",
       video_title: "",
       video_img: "",
-      video_time: "",
+      video_time: 0,
       video_genre: [],
       youtubeID: "",
       video_upload_date: new Date()
