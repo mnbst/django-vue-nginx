@@ -11,10 +11,10 @@
 </template>
 
 <script>
-import Word from "../data/Word";
-import Video from "../data/Video";
-import VideoExcepted from "../data/VideoExcepted";
-import Caption from "../data/Caption";
+import Word from "./data/Word";
+import Video from "./data/Video";
+import VideoExcepted from "./data/VideoExcepted";
+import Caption from "./data/Caption";
 import Vue from "vue";
 import VueRouter from "vue-router";
 

@@ -1,7 +1,5 @@
 <template>
-  <div id="VideoSelect">
-      
-  </div>
+  <div id="VideoSelect"></div>
 </template>
 
 <script>

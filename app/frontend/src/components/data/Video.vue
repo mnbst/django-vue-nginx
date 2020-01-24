@@ -71,14 +71,14 @@
                                   v-model="Video.video_genre[index +1]"
                                 ></v-text-field>
                               </v-col>
-                              <v-btn icon bottom color="grey lighten-1" v-on:click="add_form">
+                              <v-btn icon bottom color="grey lighten-1" v-on:click="add_form(form)">
                                 <v-icon dark>add_circle</v-icon>
                               </v-btn>
                               <v-btn
                                 icon
                                 bottom
                                 color="grey lighten-1"
-                                v-on:click="remove_form"
+                                v-on:click="remove_form(form)"
                                 v-if="this.form.length>0"
                               >
                                 <v-icon dark>remove_circle</v-icon>
@@ -142,14 +142,19 @@
                     <v-col cols="2" v-for="(_,i) in item.video_genre" :key="i">
                       <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_genre[i]"></v-text-field>
                     </v-col>
-                    <v-btn icon bottom color="grey lighten-1" v-on:click="add_modify_form(item)">
+                    <v-btn
+                      icon
+                      bottom
+                      color="grey lighten-1"
+                      v-on:click="add_form(item.video_genre)"
+                    >
                       <v-icon dark>add_circle</v-icon>
                     </v-btn>
                     <v-btn
                       icon
                       bottom
                       color="grey lighten-1"
-                      v-on:click="remove_modify_form(item)"
+                      v-on:click="remove_form(item.video_genre)"
                       v-if="item.video_genre.length>1"
                     >
                       <v-icon dark>remove_circle</v-icon>
@@ -199,7 +204,7 @@ export default {
   name: "Video",
   data: () => ({
     screen_name: "video",
-    tables: ["word", "video","caption", "video_excepted"],
+    tables: ["word", "video", "caption", "video_excepted"],
     dialog: false,
     confirmationDialog: false,
     Video: {
@@ -223,13 +228,11 @@ export default {
     changeRoute(a) {
       this.$router.push({ path: "/data/" + a });
     },
-    add_form() {
-      this.form.push({
-        one: ""
-      });
+    add_form(form) {
+      form.push("");
     },
-    remove_form(index) {
-      this.form.splice(index, 1);
+    remove_form(form) {
+      form.splice(-1, 1);
     },
     submit: function() {
       let newVideo = {
@@ -252,12 +255,6 @@ export default {
         .catch(e => {
           console.log(e);
         });
-    },
-    add_modify_form: function(item) {
-      item.video_genre.push("");
-    },
-    remove_modify_form: function(item) {
-      item.video_genre.splice(-1, 1);
     },
     showCreateDialog: function() {
       this.Video = {

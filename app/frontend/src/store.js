@@ -39,7 +39,10 @@ export default new vuex.Store({
             commit
         }) {
             axios.get('/api/video_excepted').then(data => {
-                let video_excepted = data.data
+                let video_excepted=[]
+                for (let d in data.data) {
+                    video_excepted.push(data.data[d].video_href)
+                }
                 commit('SET_VIDEO_EXCEPTED', video_excepted)
             }).catch(e => {
                 console.log(e);

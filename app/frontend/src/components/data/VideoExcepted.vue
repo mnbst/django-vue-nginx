@@ -129,7 +129,6 @@ export default {
       video_title: "",
       video_img: ""
     },
-    form: []
   }),
   mounted() {
     this.$store.dispatch("loadVideosExcepted");
@@ -140,14 +139,6 @@ export default {
   methods: {
     changeRoute(a) {
       this.$router.push({ path: "/data/" + a });
-    },
-    add_form() {
-      this.form.push({
-        one: ""
-      });
-    },
-    remove_form(index) {
-      this.form.splice(index, 1);
     },
     submit: function() {
       let newVideoExcepted = {
@@ -166,12 +157,6 @@ export default {
         .catch(e => {
           console.log(e);
         });
-    },
-    add_modify_form: function(item) {
-      item.video_genre.push("");
-    },
-    remove_modify_form: function(item) {
-      item.video_genre.splice(-1, 1);
     },
     showCreateDialog: function() {
       this.VideoExcepted = {

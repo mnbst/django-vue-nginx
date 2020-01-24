@@ -42,9 +42,9 @@
 </template>
 
 <script>
-import Home from "./components/menu/Home";
-import VideoSelect from "./components/menu/VideoSelect";
-import FetchData from "./fetch/FetchData";
+import Home from "./components/Home";
+import VideoSelect from "./components/videoViewer/VideoSelect";
+import FetchData from "./components/fetch/FetchData";
 import Vue from "vue";
 import VueRouter from "vue-router";
 
