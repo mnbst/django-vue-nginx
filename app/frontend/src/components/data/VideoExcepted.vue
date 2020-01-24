@@ -1,5 +1,5 @@
 <template>
-  <div id="Word">
+  <div id="Video">
     <v-container>
       <v-row dense>
         <v-col cols="12">
@@ -22,23 +22,35 @@
                   </v-row>
                   <v-spacer></v-spacer>
                   <v-card-actions>
-                    <v-btn color="orange font-weight-bold" @click="showCreateDialog">単語追加</v-btn>
-                    <v-dialog v-model="dialog" persistent max-width="600">
+                    <v-btn color="orange font-weight-bold" @click="showCreateDialog">動画追加</v-btn>
+                    <v-dialog v-model="dialog" persistent max-width="600px">
                       <v-card>
                         <v-card-title>
-                          <span class="headline">単語情報</span>
+                          <span class="headline">動画情報</span>
                         </v-card-title>
                         <v-card-text>
                           <v-container>
                             <v-row>
                               <v-col cols="12">
-                                <v-text-field label="word_ini*" required v-model="Word.word_ini"></v-text-field>
+                                <v-text-field
+                                  label="video_href*"
+                                  required
+                                  v-model="VideoExcepted.video_href"
+                                ></v-text-field>
                               </v-col>
                               <v-col cols="12">
-                                <v-text-field label="word*" required v-model="Word.word"></v-text-field>
+                                <v-text-field
+                                  label="video_title"
+                                  required
+                                  v-model="VideoExcepted.video_title"
+                                ></v-text-field>
                               </v-col>
                               <v-col cols="12">
-                                <v-text-field label="word_imi*" required v-model="Word.word_imi"></v-text-field>
+                                <v-text-field
+                                  label="video_img"
+                                  required
+                                  v-model="VideoExcepted.video_img"
+                                ></v-text-field>
                               </v-col>
                             </v-row>
                           </v-container>
@@ -47,7 +59,7 @@
                         <v-card-actions>
                           <v-spacer></v-spacer>
                           <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-                          <v-btn color="blue darken-1" text @click="add">Save</v-btn>
+                          <v-btn color="blue darken-1" text @click="submit">Save</v-btn>
                         </v-card-actions>
                       </v-card>
                     </v-dialog>
@@ -58,37 +70,35 @@
                 </v-toolbar>
               </v-col>
             </v-row>
-            <v-col v-for="(item) in words" :key="item.id">
+            <v-col v-for="item in video_excepted" :key="item.id">
               <v-card class="mx-auto d-flex flex-wrap align-center" max-width="400">
-                <v-card-title class="headline font-weight-bold mx-auto">{{item.word}}</v-card-title>
+                <v-card-title class="headline font-weight-bold mx-auto">{{item.video_href}}</v-card-title>
                 <v-col cols="12" sm="12">
-                  <h3>word_ini</h3>
-                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.word_ini"></v-text-field>
+                  <h3>video_href</h3>
+                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_href"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12">
-                  <h3>word</h3>
-                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.word"></v-text-field>
+                  <h3>video_title</h3>
+                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_title"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12">
-                  <h3>word_imi</h3>
-                  <v-textarea class="my-n2 mb-n7 pa-0" v-model="item.word_imi"></v-textarea>
+                  <h3>video_img</h3>
+                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_img"></v-text-field>
                 </v-col>
-                <v-row>
-                  <v-btn class="ma-4 primary" @click="modify(item)">修正</v-btn>
-                  <v-btn
-                    class="ma-4 ml-n3"
-                    color="red"
-                    @click.stop="showConfirmationDialog(item)"
-                  >削除</v-btn>
-                </v-row>
+                <v-col cols="12" sm="12">
+                  <v-row>
+                    <v-btn class="ml-3 primary" v-on:click="modify(item)">修正</v-btn>
+                    <v-btn class="ml-4" color="red" v-on:click="showConfirmationDialog(item)">削除</v-btn>
+                  </v-row>
+                </v-col>
               </v-card>
             </v-col>
             <v-dialog v-model="confirmationDialog" max-width="290">
               <v-card>
-                <v-card-title class="headline">{{Word.word}}を削除しますか？</v-card-title>
+                <v-card-title class="headline">{{VideoExcepted.video_href}}を削除しますか？</v-card-title>
                 <v-card-actions>
                   <v-btn color="green darken-1" text @click="confirmationDialog = false">Disagree</v-btn>
-                  <v-btn color="green darken-1" text @click="deleteItem(Word)">Agree</v-btn>
+                  <v-btn color="green darken-1" text @click="deleteItem(VideoExcepted)">Agree</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -99,55 +109,57 @@
   </div>
 </template>
 
-<script scoped>
+<script>
 import { mapState } from "vuex";
 import axios from "axios";
+import Vue from "vue";
+import DatetimePicker from "vuetify-datetime-picker";
+
+Vue.use(DatetimePicker);
 
 export default {
-  name: "Word",
+  name: "VideoExcepted",
   data: () => ({
-    screen_name: "word",
-    tables: ["word", "video","caption", "video_excepted"],
+    screen_name: "video_excepted",
+    tables: ["word", "video", "caption", "video_excepted"],
     dialog: false,
     confirmationDialog: false,
-    Word: {
-      word_ini: "",
-      word: "",
-      word_imi: ""
-    }
+    VideoExcepted: {
+      video_href: "",
+      video_title: "",
+      video_img: ""
+    },
+    form: []
   }),
   mounted() {
-    this.$store.dispatch("loadWords");
+    this.$store.dispatch("loadVideosExcepted");
   },
   computed: {
-    ...mapState(["words"])
+    ...mapState(["video_excepted"])
   },
   methods: {
     changeRoute(a) {
       this.$router.push({ path: "/data/" + a });
     },
-    showCreateDialog: function() {
-      this.Word = {
-        word_ini: "",
-        word: "",
-        word_imi: ""
-      };
-      this.dialog = true;
+    add_form() {
+      this.form.push({
+        one: ""
+      });
     },
-    showConfirmationDialog: function(item) {
-      this.Word = item;
-      this.confirmationDialog = true;
+    remove_form(index) {
+      this.form.splice(index, 1);
     },
-    add: function() {
-      let newWord = {
-        word_ini: this.Word.word_ini,
-        word: this.Word.word,
-        word_imi: this.Word.word_imi
+    submit: function() {
+      let newVideoExcepted = {
+        video_href: this.VideoExcepted.video_href,
+        video_title: this.VideoExcepted.video_title,
+        video_img: this.VideoExcepted.video_img
       };
+      console.log(newVideoExcepted);
       axios
-        .post("/api/words/", newWord)
+        .post("/api/video_excepted/", newVideoExcepted)
         .then(response => {
-          this.$store.dispatch("loadWords");
+          this.$store.dispatch("loadVideosExcepted");
           console.log(response);
           this.dialog = false;
         })
@@ -155,11 +167,29 @@ export default {
           console.log(e);
         });
     },
+    add_modify_form: function(item) {
+      item.video_genre.push("");
+    },
+    remove_modify_form: function(item) {
+      item.video_genre.splice(-1, 1);
+    },
+    showCreateDialog: function() {
+      this.VideoExcepted = {
+        video_href: "",
+        video_title: "",
+        video_img: ""
+      };
+      this.dialog = true;
+    },
+    showConfirmationDialog: function(item) {
+      this.VideoExcepted = item;
+      this.confirmationDialog = true;
+    },
     modify: function(item) {
       axios
         .patch(item.url, item)
         .then(response => {
-          this.$store.dispatch("loadWords");
+          this.$store.dispatch("loadVideosExcepted");
           console.log(response);
           this.dialog = false;
         })
@@ -171,7 +201,7 @@ export default {
       axios
         .delete(item.url, item)
         .then(response => {
-          this.$store.dispatch("loadWords");
+          this.$store.dispatch("loadVideosExcepted");
           console.log(response);
           this.confirmationDialog = false;
         })
@@ -182,10 +212,3 @@ export default {
   }
 };
 </script>
-
-<style>
-.custom-placeholer-color input::placeholder {
-  color: black !important;
-  opacity: 1;
-}
-</style>

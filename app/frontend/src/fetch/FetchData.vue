@@ -11,19 +11,19 @@
                   <p class="text-center">クロールするページ数</p>
                 </v-col>
                 <v-col cols="2">
-                  <number-input inline controls v-model="value1" :min="1" :max="10" :step="1"></number-input>
+                  <number-input inline controls v-model="pages" :min="1" :max="10" :step="1"></number-input>
                 </v-col>
                 <v-col cols="2">
                   <p class="text-center">字幕言語数</p>
                 </v-col>
                 <v-col cols="2">
-                  <number-input inline controls v-model="value2" :min="1" :max="5" :step="1"></number-input>
+                  <number-input inline controls v-model="languages" :min="1" :max="5" :step="1"></number-input>
                 </v-col>
                 <v-col cols="2">
                   <p class="text-center">最小字幕数</p>
                 </v-col>
                 <v-col cols="2">
-                  <number-input inline controls v-model="value3" :min="10" :max="1000" :step="1"></number-input>
+                  <number-input inline controls v-model="captions" :min="10" :max="1000" :step="1"></number-input>
                 </v-col>
               </v-row>
               <v-row>
@@ -86,20 +86,33 @@
 </template>
    
 <script>
+import { mapState } from "vuex";
 import Vue from "vue";
 import VueNumberInput from "@chenfengyuan/vue-number-input";
 Vue.use(VueNumberInput);
 
 export default {
+  name: "FetchData",
   data() {
     return {
-      value1: 1,
-      value2: 2,
-      value3: 3,
+      pages: 1,
+      languages: 1,
+      captions: 10,
       video_id: "video_id",
       form: [],
-      renewal: []
+      renewal: [],
+      VideoExcepted: {
+        video_href: "",
+        video_title: "",
+        video_img: ""
+      }
     };
+  },
+  mounted() {
+    this.$store.dispatch("loadVideoExcepted");
+  },
+  computed: {
+    ...mapState(["video_excepted"])
   },
   methods: {
     add_form() {

@@ -8,7 +8,8 @@ export default new vuex.Store({
     state: {
         words: [],
         videos: [],
-        captions: []
+        captions: [],
+        video_excepted: []
     },
     actions: {
         loadWords({
@@ -30,6 +31,16 @@ export default new vuex.Store({
                     videos[k].video_upload_date = new Date(videos[k].video_upload_date)
                 }
                 commit('SET_VIDEOS', videos)
+            }).catch(e => {
+                console.log(e);
+            })
+        },
+        loadVideosExcepted({
+            commit
+        }) {
+            axios.get('/api/video_excepted').then(data => {
+                let video_excepted = data.data
+                commit('SET_VIDEO_EXCEPTED', video_excepted)
             }).catch(e => {
                 console.log(e);
             })
@@ -57,6 +68,12 @@ export default new vuex.Store({
             videos,
         ) {
             state.videos = videos;
+        },
+        SET_VIDEO_EXCEPTED(
+            state,
+            video_excepted,
+        ) {
+            state.video_excepted = video_excepted;
         },
         SET_CAPTIONS(
             state,

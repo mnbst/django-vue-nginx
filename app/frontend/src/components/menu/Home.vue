@@ -1,12 +1,8 @@
 <template>
   <div class="text-xs-center" id="Home">
     <v-container>
-      <v-btn to="/word">word</v-btn>
-      <v-btn to="/video">video</v-btn>
-      <v-btn to="/caption">caption</v-btn>
-
       <main class="App__main">
-        <transition name="fade" mode="out-in">
+        <transition name="fade" >
           <router-view />
         </transition>
       </main>
@@ -17,6 +13,7 @@
 <script>
 import Word from "../data/Word";
 import Video from "../data/Video";
+import VideoExcepted from "../data/VideoExcepted";
 import Caption from "../data/Caption";
 import Vue from "vue";
 import VueRouter from "vue-router";
@@ -24,9 +21,11 @@ import VueRouter from "vue-router";
 Vue.use(VueRouter);
 
 const routes = [
-  { path: "/word", component: Word },
-  { path: "/video", component: Video },
-  { path: "/caption", component: Caption }
+  { path: "/data", component: Word },
+  { path: "/data/word", component: Word },
+  { path: "/data/video", component: Video },
+  { path: "/data/video_excepted", component: VideoExcepted },
+  { path: "/data/caption", component: Caption }
 ];
 
 const router = new VueRouter({ routes, history: true });

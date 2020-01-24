@@ -39,11 +39,11 @@ class Caption(models.Model):
     def __str__(self):
         return self.video_href + f'[{self.index}]'
 
+
 class VideoExcepted(models.Model):
     video_href = models.CharField(max_length=10, unique=True)
-    video_img = models.CharField(max_length=20)
-    video_title = models.CharField(max_length=50)
-    youtubeID = models.CharField(max_length=20)
-    
+    video_img = models.CharField(max_length=20, blank=True, null=True)
+    video_title = models.CharField(max_length=50, blank=True, null=True)
+
     def __str__(self):
         return self.video_href

@@ -5,90 +5,110 @@
         <v-col cols="12">
           <v-card color="white align-center">
             <v-row>
-              <v-col cols="12">
-                <v-card-title class="justify-center">
-                  <p class="headline font-weight-bold">video</p>
-                </v-card-title>
-                <v-card-actions class="justify-center">
-                  <v-btn color="orange font-weight-bold" @click="showCreateDialog">動画追加</v-btn>
-                  <v-dialog v-model="dialog" persistent max-width="600px">
-                    <v-card>
-                      <v-card-title>
-                        <span class="headline">動画情報</span>
-                      </v-card-title>
-                      <v-card-text>
-                        <v-container>
-                          <v-row>
-                            <v-col cols="12">
-                              <v-text-field label="video_href*" required v-model="Video.video_href"></v-text-field>
-                            </v-col>
-                            <v-col cols="12">
-                              <v-text-field
-                                label="video_title*"
-                                required
-                                v-model="Video.video_title"
-                              ></v-text-field>
-                            </v-col>
-                            <v-col cols="12">
-                              <v-text-field label="video_img*" required v-model="Video.video_img"></v-text-field>
-                            </v-col>
-                            <v-col cols="12">
-                              <v-text-field
-                                label="vieo_time*"
-                                min="0"
-                                step="1"
-                                type="number"
-                                required
-                                v-model="Video.video_time"
-                              ></v-text-field>
-                            </v-col>
-                            <v-col cols="2">
-                              <v-text-field
-                                label="vieo_genre*"
-                                required
-                                v-model="Video.video_genre[0]"
-                              ></v-text-field>
-                            </v-col>
-                            <v-col cols="2" v-for="(input, index) in form" :key="index">
-                              <v-text-field
-                                label="vieo_genre"
-                                v-model="Video.video_genre[index +1]"
-                              ></v-text-field>
-                            </v-col>
-                            <v-btn icon bottom color="grey lighten-1" v-on:click="add_form">
-                              <v-icon dark>add_circle</v-icon>
-                            </v-btn>
-                            <v-btn
-                              icon
-                              bottom
-                              color="grey lighten-1"
-                              v-on:click="remove_form"
-                              v-if="this.form.length>0"
-                            >
-                              <v-icon dark>remove_circle</v-icon>
-                            </v-btn>
-                            <v-col cols="12">
-                              <v-text-field label="youtubeID*" required v-model="Video.youtubeID"></v-text-field>
-                            </v-col>
-                            <v-col cols="12">
-                              <v-datetime-picker
-                                label="vieo_upload_date*"
-                                v-model="Video.video_upload_date"
-                                :text-field-props="{prependIcon: 'event'}"
-                              ></v-datetime-picker>
-                            </v-col>
-                          </v-row>
-                        </v-container>
-                        <small>*indicates required field</small>
-                      </v-card-text>
-                      <v-card-actions>
-                        <v-spacer></v-spacer>
-                        <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-                        <v-btn color="blue darken-1" text @click="submit">Save</v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </v-dialog>
-                </v-card-actions>
+              <v-col cols="12" style="padding-top: 0px;">
+                <v-toolbar flat dark>
+                  <v-col cols="2">
+                    <v-spacer></v-spacer>
+                  </v-col>
+                  <v-row>
+                    <v-toolbar-title class="headline font-weight-bold">
+                      <v-col cols="12">
+                        <v-row style="padding-top: 24px;">
+                          <h3>table:</h3>
+                          <v-select v-model="screen_name" :items="tables" v-on:change="changeRoute"></v-select>
+                        </v-row>
+                      </v-col>
+                    </v-toolbar-title>
+                  </v-row>
+                  <v-spacer></v-spacer>
+                  <v-card-actions>
+                    <v-btn color="orange font-weight-bold" @click="showCreateDialog">動画追加</v-btn>
+                    <v-dialog v-model="dialog" persistent max-width="600px">
+                      <v-card>
+                        <v-card-title>
+                          <span class="headline">動画情報</span>
+                        </v-card-title>
+                        <v-card-text>
+                          <v-container>
+                            <v-row>
+                              <v-col cols="12">
+                                <v-text-field
+                                  label="video_href*"
+                                  required
+                                  v-model="Video.video_href"
+                                ></v-text-field>
+                              </v-col>
+                              <v-col cols="12">
+                                <v-text-field
+                                  label="video_title*"
+                                  required
+                                  v-model="Video.video_title"
+                                ></v-text-field>
+                              </v-col>
+                              <v-col cols="12">
+                                <v-text-field label="video_img*" required v-model="Video.video_img"></v-text-field>
+                              </v-col>
+                              <v-col cols="12">
+                                <v-text-field
+                                  label="vieo_time*"
+                                  min="0"
+                                  step="1"
+                                  type="number"
+                                  required
+                                  v-model="Video.video_time"
+                                ></v-text-field>
+                              </v-col>
+                              <v-col cols="2">
+                                <v-text-field
+                                  label="vieo_genre*"
+                                  required
+                                  v-model="Video.video_genre[0]"
+                                ></v-text-field>
+                              </v-col>
+                              <v-col cols="2" v-for="(input, index) in form" :key="index">
+                                <v-text-field
+                                  label="vieo_genre"
+                                  v-model="Video.video_genre[index +1]"
+                                ></v-text-field>
+                              </v-col>
+                              <v-btn icon bottom color="grey lighten-1" v-on:click="add_form">
+                                <v-icon dark>add_circle</v-icon>
+                              </v-btn>
+                              <v-btn
+                                icon
+                                bottom
+                                color="grey lighten-1"
+                                v-on:click="remove_form"
+                                v-if="this.form.length>0"
+                              >
+                                <v-icon dark>remove_circle</v-icon>
+                              </v-btn>
+                              <v-col cols="12">
+                                <v-text-field label="youtubeID*" required v-model="Video.youtubeID"></v-text-field>
+                              </v-col>
+                              <v-col cols="12">
+                                <v-datetime-picker
+                                  label="vieo_upload_date*"
+                                  v-model="Video.video_upload_date"
+                                  :text-field-props="{prependIcon: 'event'}"
+                                ></v-datetime-picker>
+                              </v-col>
+                            </v-row>
+                          </v-container>
+                          <small>*indicates required field</small>
+                        </v-card-text>
+                        <v-card-actions>
+                          <v-spacer></v-spacer>
+                          <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
+                          <v-btn color="blue darken-1" text @click="submit">Save</v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-dialog>
+                  </v-card-actions>
+                  <v-col cols="2">
+                    <v-spacer></v-spacer>
+                  </v-col>
+                </v-toolbar>
               </v-col>
             </v-row>
             <v-col v-for="item in videos" :key="item.id">
@@ -178,6 +198,8 @@ Vue.use(DatetimePicker);
 export default {
   name: "Video",
   data: () => ({
+    screen_name: "video",
+    tables: ["word", "video","caption", "video_excepted"],
     dialog: false,
     confirmationDialog: false,
     Video: {
@@ -198,6 +220,9 @@ export default {
     ...mapState(["videos"])
   },
   methods: {
+    changeRoute(a) {
+      this.$router.push({ path: "/data/" + a });
+    },
     add_form() {
       this.form.push({
         one: ""

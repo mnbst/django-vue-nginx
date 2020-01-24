@@ -4,126 +4,149 @@
       <v-col cols="12">
         <v-card color="white align-center">
           <v-row>
-            <v-col cols="12">
-              <v-card-title class="justify-center">
-                <p class="headline font-weight-bold">caption</p>
-              </v-card-title>
-              <v-card-actions class="justify-center">
-                <v-btn color="orange font-weight-bold" @click="showCreateDialog">字幕追加</v-btn>
-                <v-dialog v-model="dialog" persistent max-width="600px">
-                  <v-card>
-                    <v-card-title>
-                      <span class="headline">字幕情報</span>
-                    </v-card-title>
-                    <v-card-text>
-                      <v-container>
-                        <v-row>
-                          <v-col cols="12">
-                            <v-text-field label="video_href*" required v-model="Caption.video_href"></v-text-field>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-text-field
-                              label="index*"
-                              min="0"
-                              step="1"
-                              type="number"
-                              required
-                              v-model="Caption.index"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-text-field
-                              label="start_time*"
-                              min="0"
-                              step="1"
-                              type="number"
-                              required
-                              v-model="Caption.start_time"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-text-field
-                              label="end_time*"
-                              min="0"
-                              step="1"
-                              type="number"
-                              required
-                              v-model="Caption.end_time"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-textarea label="text*" required v-model="Caption.text"></v-textarea>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-row>
-                              <v-col cols="2">
-                                <v-text-field label="word*" required v-model="Caption.word[0]"></v-text-field>
-                              </v-col>
-                              <v-col cols="2" v-for="(input, index) in form1" :key="index">
-                                <v-text-field label="word" v-model="Caption.word[index +1]"></v-text-field>
-                              </v-col>
-                              <v-btn
-                                icon
-                                bottom
-                                color="grey lighten-1"
-                                v-on:click="add_form(form1)"
-                              >
-                                <v-icon dark>add_circle</v-icon>
-                              </v-btn>
-                              <v-btn
-                                icon
-                                bottom
-                                color="grey lighten-1"
-                                v-on:click="remove_form(form1)"
-                                v-if="this.form1.length>0"
-                              >
-                                <v-icon dark>remove_circle</v-icon>
-                              </v-btn>
-                            </v-row>
-                          </v-col>
-                          <v-col cols="12">
-                            <v-row>
-                              <v-col cols="2">
-                                <v-text-field
-                                  label="word_imi*"
-                                  required
-                                  v-model="Caption.word_imi[0]"
-                                ></v-text-field>
-                              </v-col>
-                              <v-col cols="2" v-for="(input, index) in form2" :key="index">
-                                <v-text-field label="word_imi" v-model="Caption.word_imi[index +1]"></v-text-field>
-                              </v-col>
-                              <v-btn
-                                icon
-                                bottom
-                                color="grey lighten-1"
-                                v-on:click="add_form(form2)"
-                              >
-                                <v-icon dark>add_circle</v-icon>
-                              </v-btn>
-                              <v-btn
-                                icon
-                                bottom
-                                color="grey lighten-1"
-                                v-on:click="remove_form(form2)"
-                                v-if="this.form2.length>0"
-                              >
-                                <v-icon dark>remove_circle</v-icon>
-                              </v-btn>
-                            </v-row>
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                      <small>*indicates required field</small>
-                    </v-card-text>
-                    <v-card-actions>
-                      <v-spacer></v-spacer>
-                      <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-                      <v-btn color="blue darken-1" text @click="submit">Save</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
-              </v-card-actions>
+            <v-col cols="12" style="padding-top: 0px;">
+              <v-toolbar flat dark>
+                <v-col cols="2">
+                  <v-spacer></v-spacer>
+                </v-col>
+                <v-row>
+                  <v-toolbar-title class="headline font-weight-bold">
+                    <v-col cols="12">
+                      <v-row style="padding-top: 24px;">
+                        <h3>table:</h3>
+                        <v-select v-model="screen_name" :items="tables" v-on:change="changeRoute"></v-select>
+                      </v-row>
+                    </v-col>
+                  </v-toolbar-title>
+                </v-row>
+                <v-spacer></v-spacer>
+                <v-card-actions>
+                  <v-btn color="orange font-weight-bold" @click="showCreateDialog">字幕追加</v-btn>
+                  <v-dialog v-model="dialog" persistent max-width="600px">
+                    <v-card>
+                      <v-card-title>
+                        <span class="headline">字幕情報</span>
+                      </v-card-title>
+                      <v-card-text>
+                        <v-container>
+                          <v-row>
+                            <v-col cols="12">
+                              <v-text-field
+                                label="video_href*"
+                                required
+                                v-model="Caption.video_href"
+                              ></v-text-field>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-text-field
+                                label="index*"
+                                min="0"
+                                step="1"
+                                type="number"
+                                required
+                                v-model="Caption.index"
+                              ></v-text-field>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-text-field
+                                label="start_time*"
+                                min="0"
+                                step="1"
+                                type="number"
+                                required
+                                v-model="Caption.start_time"
+                              ></v-text-field>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-text-field
+                                label="end_time*"
+                                min="0"
+                                step="1"
+                                type="number"
+                                required
+                                v-model="Caption.end_time"
+                              ></v-text-field>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-textarea label="text*" required v-model="Caption.text"></v-textarea>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-row>
+                                <v-col cols="2">
+                                  <v-text-field label="word*" required v-model="Caption.word[0]"></v-text-field>
+                                </v-col>
+                                <v-col cols="2" v-for="(input, index) in form1" :key="index">
+                                  <v-text-field label="word" v-model="Caption.word[index +1]"></v-text-field>
+                                </v-col>
+                                <v-btn
+                                  icon
+                                  bottom
+                                  color="grey lighten-1"
+                                  v-on:click="add_form(form1)"
+                                >
+                                  <v-icon dark>add_circle</v-icon>
+                                </v-btn>
+                                <v-btn
+                                  icon
+                                  bottom
+                                  color="grey lighten-1"
+                                  v-on:click="remove_form(form1)"
+                                  v-if="this.form1.length>0"
+                                >
+                                  <v-icon dark>remove_circle</v-icon>
+                                </v-btn>
+                              </v-row>
+                            </v-col>
+                            <v-col cols="12">
+                              <v-row>
+                                <v-col cols="2">
+                                  <v-text-field
+                                    label="word_imi*"
+                                    required
+                                    v-model="Caption.word_imi[0]"
+                                  ></v-text-field>
+                                </v-col>
+                                <v-col cols="2" v-for="(input, index) in form2" :key="index">
+                                  <v-text-field
+                                    label="word_imi"
+                                    v-model="Caption.word_imi[index +1]"
+                                  ></v-text-field>
+                                </v-col>
+                                <v-btn
+                                  icon
+                                  bottom
+                                  color="grey lighten-1"
+                                  v-on:click="add_form(form2)"
+                                >
+                                  <v-icon dark>add_circle</v-icon>
+                                </v-btn>
+                                <v-btn
+                                  icon
+                                  bottom
+                                  color="grey lighten-1"
+                                  v-on:click="remove_form(form2)"
+                                  v-if="this.form2.length>0"
+                                >
+                                  <v-icon dark>remove_circle</v-icon>
+                                </v-btn>
+                              </v-row>
+                            </v-col>
+                          </v-row>
+                        </v-container>
+                        <small>*indicates required field</small>
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
+                        <v-btn color="blue darken-1" text @click="submit">Save</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-dialog>
+                </v-card-actions>
+                <v-col cols="2">
+                  <v-spacer></v-spacer>
+                </v-col>
+              </v-toolbar>
             </v-col>
           </v-row>
           <v-col v-for="(item, i) in captions" :key="i">
@@ -251,6 +274,8 @@ import axios from "axios";
 export default {
   name: "Caption",
   data: () => ({
+    screen_name: "caption",
+    tables: ["word", "video","caption", "video_excepted"],
     dialog: false,
     confirmationDialog: false,
     Caption: {
@@ -272,6 +297,9 @@ export default {
     ...mapState(["captions"])
   },
   methods: {
+    changeRoute(a) {
+      this.$router.push({ path: "/data/" + a });
+    },
     add_form(form) {
       form.push({
         one: ""

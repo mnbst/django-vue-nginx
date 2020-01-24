@@ -11,7 +11,7 @@
       <v-navigation-drawer v-model="drawer" absolute temporary>
         <v-list nav dense>
           <v-list-item-group active-class="deep-purple--text text--accent-4">
-            <v-list-item @click="drawer = false" to="/">
+            <v-list-item @click="drawer = false" to="/data">
               <v-list-item-title>
                 <h4>data</h4>
               </v-list-item-title>
@@ -51,12 +51,13 @@ import VueRouter from "vue-router";
 Vue.use(VueRouter);
 
 const routes = [
-  { path: "/", component: Home },
+  { path: "/data", component: Home },
   { path: "/video_select", component: VideoSelect },
   { path: "/fetch_data", component: FetchData }
 ];
 
 const router = new VueRouter({ routes });
+router.replace('/data')
 
 export default {
   name: "App",
