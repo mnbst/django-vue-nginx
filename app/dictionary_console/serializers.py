@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Word
 from .models import Video
 from .models import Caption
-from .models import VideoExcepted
+from .models import FetchSetting
 
 
 class WordSerializer(serializers.HyperlinkedModelSerializer):
@@ -24,7 +24,11 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'url', 'video_href', 'video_title', 'video_img',
                   'video_time', 'video_genre', 'youtubeID',
                   'video_upload_date')
-class VideoExceptedSerializer(serializers.HyperlinkedModelSerializer):
+
+
+class FetchSettingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = VideoExcepted
-        fields = ('id', 'url', 'video_href', 'video_title', 'video_img')
+        model = FetchSetting
+        fields = ('id', 'url', 'authority', 'excepted_href', 'page_to_crawl',
+                  'language_limit', 'minimum_sentence', 'video_to_delete',
+                  'video_to_renewal')

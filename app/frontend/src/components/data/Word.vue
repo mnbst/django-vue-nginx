@@ -107,7 +107,7 @@ export default {
   name: "Word",
   data: () => ({
     screen_name: "word",
-    tables: ["word", "video","caption", "video_excepted"],
+    tables: ["word", "video","caption"],
     dialog: false,
     confirmationDialog: false,
     Word: {
@@ -156,6 +156,7 @@ export default {
         });
     },
     modify: function(item) {
+      console.log(item)
       axios
         .patch(item.url, item)
         .then(response => {

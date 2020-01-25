@@ -9,7 +9,7 @@ export default new vuex.Store({
         words: [],
         videos: [],
         captions: [],
-        video_excepted: []
+        fetch_setting: {}
     },
     actions: {
         loadWords({
@@ -35,15 +35,12 @@ export default new vuex.Store({
                 console.log(e);
             })
         },
-        loadVideosExcepted({
+        loadFetchSetting({
             commit
         }) {
-            axios.get('/api/video_excepted').then(data => {
-                let video_excepted=[]
-                for (let d in data.data) {
-                    video_excepted.push(data.data[d].video_href)
-                }
-                commit('SET_VIDEO_EXCEPTED', video_excepted)
+            axios.get('/api/fetch_setting').then(data => {
+                let fetch_setting=data.data[0]
+                commit('SET_FETCH_SETTING', fetch_setting)
             }).catch(e => {
                 console.log(e);
             })
@@ -72,11 +69,11 @@ export default new vuex.Store({
         ) {
             state.videos = videos;
         },
-        SET_VIDEO_EXCEPTED(
+        SET_FETCH_SETTING(
             state,
-            video_excepted,
+            fetch_setting,
         ) {
-            state.video_excepted = video_excepted;
+            state.fetch_setting = fetch_setting;
         },
         SET_CAPTIONS(
             state,

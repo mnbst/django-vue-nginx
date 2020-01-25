@@ -29,9 +29,9 @@ class Caption(models.Model):
     video_href = models.ForeignKey(Video,
                                    to_field='video_href',
                                    on_delete=models.CASCADE)
-    index = models.IntegerField()
-    start_time = models.IntegerField()
-    end_time = models.IntegerField()
+    index = models.IntegerField(default=0)
+    start_time = models.IntegerField(default=0)
+    end_time = models.IntegerField(default=0)
     text = models.CharField(max_length=100)
     word = ArrayField(models.CharField(max_length=20))
     word_imi = ArrayField(models.CharField(max_length=20))
@@ -40,10 +40,23 @@ class Caption(models.Model):
         return self.video_href + f'[{self.index}]'
 
 
-class VideoExcepted(models.Model):
-    video_href = models.CharField(max_length=10, unique=True)
-    video_img = models.CharField(max_length=20, blank=True, null=True)
-    video_title = models.CharField(max_length=50, blank=True, null=True)
+class FetchSetting(models.Model):
+    authority = models.CharField(max_length=30, default="super", unique=True)
+    excepted_href = ArrayField(models.CharField(max_length=20),
+                               default=list,
+                               null=True,
+                               blank=True)
+    page_to_crawl = models.IntegerField(default=5)
+    language_limit = models.IntegerField(default=1)
+    minimum_sentence = models.IntegerField(default=10)
+    video_to_delete = ArrayField(models.CharField(max_length=20),
+                                 default=list,
+                                 null=True,
+                                 blank=True)
+    video_to_renewal = ArrayField(models.CharField(max_length=20),
+                                  default=list,
+                                  null=True,
+                                  blank=True)
 
     def __str__(self):
-        return self.video_href
+        return self.authority

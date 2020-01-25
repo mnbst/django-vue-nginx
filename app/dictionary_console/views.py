@@ -4,11 +4,11 @@ from rest_framework import viewsets
 from .models import Word
 from .models import Caption
 from .models import Video
-from .models import VideoExcepted
+from .models import FetchSetting
 from .serializers import WordSerializer
 from .serializers import CaptionSerializer
 from .serializers import VideoSerializer
-from .serializers import VideoExceptedSerializer
+from .serializers import FetchSettingSerializer
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 
@@ -28,6 +28,6 @@ class VideoView(viewsets.ModelViewSet):
     serializer_class = VideoSerializer
 
 
-class VideoExceptedView(viewsets.ModelViewSet):
-    queryset = VideoExcepted.objects.all()
-    serializer_class = VideoExceptedSerializer
+class FetchSettingView(viewsets.ModelViewSet):
+    queryset = FetchSetting.objects.all()
+    serializer_class = FetchSettingSerializer

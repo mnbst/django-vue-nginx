@@ -13,7 +13,6 @@
 <script>
 import Word from "./data/Word";
 import Video from "./data/Video";
-import VideoExcepted from "./data/VideoExcepted";
 import Caption from "./data/Caption";
 import Vue from "vue";
 import VueRouter from "vue-router";
@@ -24,7 +23,6 @@ const routes = [
   { path: "/data", component: Word },
   { path: "/data/word", component: Word },
   { path: "/data/video", component: Video },
-  { path: "/data/video_excepted", component: VideoExcepted },
   { path: "/data/caption", component: Caption }
 ];
 

@@ -272,7 +272,7 @@ export default {
   name: "Caption",
   data: () => ({
     screen_name: "caption",
-    tables: ["word", "video", "caption", "video_excepted"],
+    tables: ["word", "video", "caption"],
     dialog: false,
     confirmationDialog: false,
     Caption: {
