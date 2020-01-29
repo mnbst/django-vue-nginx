@@ -100,7 +100,7 @@
                         <v-card-actions>
                           <v-spacer></v-spacer>
                           <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-                          <v-btn color="blue darken-1" text @click="submit">Save</v-btn>
+                          <v-btn color="blue darken-1" text @click="submit(Video)">Save</v-btn>
                         </v-card-actions>
                       </v-card>
                     </v-dialog>
@@ -200,6 +200,22 @@ import DatetimePicker from "vuetify-datetime-picker";
 
 Vue.use(DatetimePicker);
 
+const re = /\S+/;
+const promise = function(item) {
+  return new Promise(function(resolve) {
+    Object.keys(item).forEach(function(prop) {
+      if (typeof item[prop] == typeof []) {
+        try {
+          item[prop] = item[prop].filter(item => item.match(re));
+        } catch (_) {
+          return;
+        }
+      }
+    });
+    resolve(item);
+  });
+};
+
 export default {
   name: "Video",
   data: () => ({
@@ -234,27 +250,20 @@ export default {
     remove_form(form) {
       form.splice(-1, 1);
     },
-    submit: function() {
-      let newVideo = {
-        video_href: this.Video.video_href,
-        video_title: this.Video.video_title,
-        video_img: this.Video.video_img,
-        video_time: this.Video.video_time,
-        video_genre: this.Video.video_genre,
-        youtubeID: this.Video.youtubeID,
-        video_upload_date: this.Video.video_upload_date
-      };
-      console.log(newVideo);
-      axios
-        .post("/api/videos/", newVideo)
-        .then(response => {
-          this.$store.dispatch("loadVideos");
-          console.log(response);
-          this.dialog = false;
-        })
-        .catch(e => {
-          console.log(e);
-        });
+    submit: function(video) {
+      const _this = this;
+      promise(video).then(function(video) {
+        axios
+          .post("/api/videos/", video)
+          .then(response => {
+            console.log(response);
+            _this.$store.dispatch("loadVideos");
+            _this.dialog = false;
+          })
+          .catch(e => {
+            console.log(e);
+          });
+      });
     },
     showCreateDialog: function() {
       this.Video = {
@@ -272,17 +281,19 @@ export default {
       this.Video = item;
       this.confirmationDialog = true;
     },
-    modify: function(item) {
-      axios
-        .patch(item.url, item)
-        .then(response => {
-          this.$store.dispatch("loadVideos");
-          console.log(response);
-          this.dialog = false;
-        })
-        .catch(e => {
-          console.log(e);
-        });
+    modify: function(video) {
+      const _this = this;
+      promise(video).then(function(video) {
+        axios
+          .patch(video.url, video)
+          .then(response => {
+            console.log(response);
+            _this.dialog = false;
+          })
+          .catch(e => {
+            console.log(e);
+          });
+      });
     },
     deleteItem: function(item) {
       axios

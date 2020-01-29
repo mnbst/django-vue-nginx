@@ -24,6 +24,8 @@ services:
       POSTGRES_USER: hello_django
       POSTGRES_PASSWORD: hello_django
       POSTGRES_DB: hello_django_dev
+    ports:
+      - 15432:5432  
     volumes:
       - ./postgres_data/:/var/lib/postgresql/data
   frontend:

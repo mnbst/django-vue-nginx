@@ -34,7 +34,8 @@ class Caption(models.Model):
     end_time = models.IntegerField(default=0)
     text = models.CharField(max_length=100)
     word = ArrayField(models.CharField(max_length=20))
-    word_imi = ArrayField(models.CharField(max_length=20))
+    word_imi = ArrayField(
+        models.CharField(max_length=20, null=True, blank=True))
 
     def __str__(self):
         return self.video_href + f'[{self.index}]'

@@ -11,9 +11,9 @@
       <v-navigation-drawer v-model="drawer" absolute temporary>
         <v-list nav dense>
           <v-list-item-group active-class="deep-purple--text text--accent-4">
-            <v-list-item @click="drawer = false" to="/data">
+            <v-list-item @click="drawer = false" to="/fetch_data">
               <v-list-item-title>
-                <h4>data</h4>
+                <h4>fetch data</h4>
               </v-list-item-title>
             </v-list-item>
 
@@ -23,9 +23,9 @@
               </v-list-item-title>
             </v-list-item>
 
-            <v-list-item @click="drawer = false" to="/fetch_data">
+            <v-list-item @click="drawer = false" to="/data">
               <v-list-item-title>
-                <h4>fetch data</h4>
+                <h4>data</h4>
               </v-list-item-title>
             </v-list-item>
           </v-list-item-group>
@@ -57,7 +57,7 @@ const routes = [
 ];
 
 const router = new VueRouter({ routes });
-router.replace('/data')
+router.replace("/fetch_data");
 
 export default {
   name: "App",

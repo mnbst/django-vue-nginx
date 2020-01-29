@@ -139,7 +139,7 @@
                         <v-card-actions>
                           <v-spacer></v-spacer>
                           <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
-                          <v-btn color="blue darken-1" text @click="submit">Save</v-btn>
+                          <v-btn color="blue darken-1" text @click="submit(Caption)">Save</v-btn>
                         </v-card-actions>
                       </v-card>
                     </v-dialog>
@@ -268,6 +268,22 @@
 import { mapState } from "vuex";
 import axios from "axios";
 
+const re = /\S+/;
+const promise = function(item) {
+  return new Promise(function(resolve) {
+    Object.keys(item).forEach(function(prop) {
+      if (typeof item[prop] == typeof []) {
+        try {
+          item[prop] = item[prop].filter(item => item.match(re));
+        } catch (_) {
+          return;
+        }
+      }
+    });
+    resolve(item);
+  });
+};
+
 export default {
   name: "Caption",
   data: () => ({
@@ -303,27 +319,20 @@ export default {
     remove_form(form) {
       form.splice(-1, 1);
     },
-    submit: function() {
-      let newCaption = {
-        video_href: this.Caption.video_href,
-        index: this.Caption.index,
-        start_time: this.Caption.start_time,
-        end_time: this.Caption.end_time,
-        text: this.Caption.text,
-        word: this.Caption.word,
-        word_imi: this.Caption.word_imi
-      };
-      console.log(newCaption);
-      axios
-        .post("/api/captions/", newCaption)
-        .then(response => {
-          this.$store.dispatch("loadCaptions");
-          console.log(response);
-          this.dialog = false;
-        })
-        .catch(e => {
-          console.log(e);
-        });
+    submit: function(caption) {
+      const _this = this;
+      promise(caption).then(function(caption) {
+        axios
+          .post("/api/captions/", caption)
+          .then(response => {
+            _this.$store.dispatch("loadCaptions");
+            console.log(response);
+            _this.dialog = false;
+          })
+          .catch(e => {
+            console.log(e);
+          });
+      });
     },
     showCreateDialog: function() {
       this.Caption = {
@@ -341,17 +350,19 @@ export default {
       this.Caption = item;
       this.confirmationDialog = true;
     },
-    modify: function(item) {
-      axios
-        .patch(item.url, item)
-        .then(response => {
-          this.$store.dispatch("loadCaptions");
-          console.log(response);
-          this.dialog = false;
-        })
-        .catch(e => {
-          console.log(e);
-        });
+    modify: function(caption) {
+      const _this = this;
+      promise(caption).then(function(caption) {
+        axios
+          .patch(caption.url, caption)
+          .then(response => {
+            console.log(response);
+            _this.dialog = false;
+          })
+          .catch(e => {
+            console.log(e);
+          });
+      });
     },
     deleteItem: function(item) {
       axios

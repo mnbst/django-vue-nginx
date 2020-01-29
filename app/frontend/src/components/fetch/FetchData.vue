@@ -164,6 +164,21 @@ import VueTerminal from "vue-terminal-ui";
 import axios from "axios";
 
 Vue.use(VueNumberInput);
+const re = /\S+/;
+const promise = function(item) {
+  return new Promise(function(resolve) {
+    Object.keys(item).forEach(function(prop) {
+      if (typeof item[prop] == typeof []) {
+        try {
+          item[prop] = item[prop].filter(item => item.match(re));
+        } catch (_) {
+          return;
+        }
+      }
+    });
+    resolve(item);
+  });
+};
 
 export default {
   name: "FetchData",
@@ -172,8 +187,7 @@ export default {
   },
   data() {
     return {
-      video_id: "video_id",
-      intro: "terminal"
+      intro: "hello"
     };
   },
   mounted() {
@@ -195,16 +209,7 @@ export default {
       form.splice(-1, 1);
     },
     modify(setting) {
-      const promise = new Promise(function(resolve) {
-        resolve(
-          Object.keys(setting).forEach(function(prop) {
-            if (typeof setting[prop] == "object") {
-              setting[prop] = setting[prop].filter(item => item != "");
-            }
-          })
-        );
-      });
-      promise.then(function() {
+      promise(setting).then(function(setting) {
         axios
           .patch(setting.url, setting)
           .then(response => {
@@ -215,8 +220,8 @@ export default {
           });
       });
     },
-    fetch(settings) {
-      console.log(settings);
+    fetch(setting) {
+      console.log(setting);
     }
   }
 };
