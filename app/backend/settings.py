@@ -39,8 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # own
-    'dictionary_console',
+    'backend.dictionary_console',
+    'backend.fetch_data',
     # additional
+    'channels',
     'rest_framework',
     'webpack_loader',
 ]
@@ -62,6 +64,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
+ASGI_APPLICATION = "backend.fetch_data.routing.application"
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -80,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+# WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases

@@ -45,3 +45,4 @@ soupsieve==1.9.5
 sqlparse==0.3.0
 uritemplate==3.0.0
 urllib3==1.25.7
+channels==2.4.0

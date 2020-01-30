@@ -10,6 +10,7 @@ services:
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./app/:/usr/src/app/
+      - frontend:/usr/src/app/frontend
     ports:
       - 8000:8000
     env_file:
@@ -31,12 +32,15 @@ services:
   frontend:
     container_name: vue
     restart: on-failure:1
-    build: ./app/frontend
+    build: ./frontend
     volumes:
-      - ./app/frontend/src:/usr/src/app/frontend/src
+      - ./frontend/src:/usr/src/app/frontend/src
+      - frontend:/usr/src/app/frontend
     ports:
       - 8080:8080
     stdin_open: true
     tty: true
     environment:
       - CHOKIDAR_USEPOLLING=true
+volumes: 
+  frontend:
