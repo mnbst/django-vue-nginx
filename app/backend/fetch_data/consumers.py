@@ -1,6 +1,7 @@
 import asyncio
 import json
 from channels.consumer import AsyncConsumer
+from .manage.youtubeAPI import FetchDataFromYoutube
 
 
 class FetchDataConsumer(AsyncConsumer):
@@ -9,13 +10,17 @@ class FetchDataConsumer(AsyncConsumer):
         await self.send({
             'type': 'websocket.accept'
         })
-        await self.send({
-            'type': 'websocket.send',
-            'text':'hello world'
-        })
 
     async def websocket_receive(self, event):
-        print("receive", event)
+        print("receive", event['text'])
+        data = json.loads(event['text'])
+        fdfy = FetchDataFromYoutube(settings=data, ws=self)
+        await fdfy.youtube_search()
+        print(data)
 
     async def websocket_disconnect(self, event):
         print("disconnected", event)
+        await self.send({
+            'type': 'websocket.send',
+            'text': 'error occored'
+        })

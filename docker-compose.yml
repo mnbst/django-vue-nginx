@@ -13,6 +13,7 @@ services:
       - frontend:/usr/src/app/frontend
     ports:
       - 8000:8000
+      - 3000:3000
     env_file:
       - ./.env.dev
     depends_on:
@@ -26,15 +27,15 @@ services:
       POSTGRES_PASSWORD: hello_django
       POSTGRES_DB: hello_django_dev
     ports:
-      - 15432:5432  
+      - 15432:5432
     volumes:
       - ./postgres_data/:/var/lib/postgresql/data
   frontend:
     container_name: vue
     restart: on-failure:1
-    build: ./frontend
+    build: ./app/frontend
     volumes:
-      - ./frontend/src:/usr/src/app/frontend/src
+      - ./app/frontend/src:/usr/src/app/frontend/src
       - frontend:/usr/src/app/frontend
     ports:
       - 8080:8080
@@ -42,5 +43,5 @@ services:
     tty: true
     environment:
       - CHOKIDAR_USEPOLLING=true
-volumes: 
+volumes:
   frontend:

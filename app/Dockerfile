@@ -12,7 +12,8 @@ ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
 RUN apk update \
-    && apk add postgresql-dev gcc python3-dev musl-dev build-base libffi-dev
+    && apk add postgresql-dev gcc python3-dev musl-dev build-base libffi-dev py3-grpcio \
+    --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 # install dependencies
 RUN pip install --upgrade pip

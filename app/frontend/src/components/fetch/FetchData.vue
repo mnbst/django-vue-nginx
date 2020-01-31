@@ -3,14 +3,15 @@
     <v-container>
       <v-col cols="12">
         <h2>fetch data</h2>
-        <VueTerminal
-          :intro="intro"
-          console-sign=">>"
-          allow-arbitrary
-          height="250px"
-          full-screen
-          @command="onCliCommand"
-        ></VueTerminal>
+        <div class="dark_terminal">
+          <virtual-list :size="25" :remain="10">
+            <ul
+              class="white--text font-weight-black"
+              v-for="item in items"
+              :key="item.id"
+            >>> {{item}}</ul>
+          </virtual-list>
+        </div>
       </v-col>
       <v-col cols="12">
         <v-card color="white align-center">
@@ -21,7 +22,16 @@
                 <v-spacer></v-spacer>
                 <v-card-actions>
                   <v-btn class="primary" v-on:click="modify(fetch_setting)">設定を保存</v-btn>
-                  <v-btn color="orange font-weight-bold" @click="fetch(fetch_setting)">実行</v-btn>
+                  <v-btn
+                    v-if="activate==false"
+                    color="orange font-weight-bold"
+                    @click="fetch(fetch_setting)"
+                  >実行</v-btn>
+                  <v-btn
+                    v-else
+                    color="orange font-weight-bold"
+                    @click="stop_fetch(fetch_setting)"
+                  >中止</v-btn>
                 </v-card-actions>
               </v-toolbar>
             </v-col>
@@ -160,8 +170,8 @@
 import { mapState } from "vuex";
 import Vue from "vue";
 import VueNumberInput from "@chenfengyuan/vue-number-input";
-import VueTerminal from "vue-terminal-ui";
 import axios from "axios";
+import virtualList from "vue-virtual-scroll-list";
 
 Vue.use(VueNumberInput);
 const re = /\S+/;
@@ -179,16 +189,21 @@ const promise = function(item) {
     resolve(item);
   });
 };
+const loc = window.location;
+let wsStart = "ws://";
+if (loc.protocol == "https:") {
+  wsStart = "wss://";
+}
+const endpoint = wsStart + loc.host + loc.pathname + "realtime";
 
 export default {
   name: "FetchData",
+  data: () => ({
+    items: ["hello"],
+    activate: false
+  }),
   components: {
-    VueTerminal
-  },
-  data() {
-    return {
-      intro: "hello"
-    };
+    "virtual-list": virtualList
   },
   mounted() {
     this.$store.dispatch("loadFetchSetting");
@@ -197,11 +212,6 @@ export default {
     ...mapState(["fetch_setting"])
   },
   methods: {
-    onCliCommand(data, resolve) {
-      setTimeout(() => {
-        resolve("");
-      }, 300);
-    },
     add_form(form) {
       form.push("");
     },
@@ -220,29 +230,40 @@ export default {
           });
       });
     },
+    stop_fetch() {
+      this.$data.activate = false;
+      let socket = new WebSocket(endpoint);
+      socket.close(1000);
+    },
     fetch(setting) {
-      var loc = window.location;
-      var wsStart = "ws://";
-      if (loc.protocol == "https:") {
-        wsStart = "wss://";
-      }
-      var endpoint = wsStart + loc.host + loc.pathname + "realtime";
-      var socket = new WebSocket(endpoint);
+      let _this = this;
+      let socket = new WebSocket(endpoint);
+      _this.$data.activate = true;
 
       socket.onmessage = function(e) {
         console.log("message", e);
+        _this.$data.items.push(e.data);
       };
       socket.onopen = function(e) {
         console.log("open", e);
+        socket.send(JSON.stringify(setting));
       };
       socket.onerror = function(e) {
         console.log("error", e);
       };
       socket.onclose = function(e) {
         console.log("close", e);
+        _this.$data.activate = false;
       };
       console.log(setting);
     }
   }
 };
 </script>
+
+<style scoped>
+.dark_terminal {
+  background: black;
+  border-radius: 10px;
+}
+</style>
