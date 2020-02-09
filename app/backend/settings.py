@@ -50,7 +50,7 @@ INSTALLED_APPS = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'public'), )
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'public'),)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -64,7 +64,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-ASGI_APPLICATION = "backend.fetch_data.routing.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+ASGI_APPLICATION = 'backend.fetch_data.routing.application'
 
 TEMPLATES = [
     {
@@ -92,17 +98,17 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE":
-        os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
+            os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
         "NAME":
-        os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
+            os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
         "USER":
-        os.environ.get("SQL_USER", "user"),
+            os.environ.get("SQL_USER", "user"),
         "PASSWORD":
-        os.environ.get("SQL_PASSWORD", "password"),
+            os.environ.get("SQL_PASSWORD", "password"),
         "HOST":
-        os.environ.get("SQL_HOST", "localhost"),
+            os.environ.get("SQL_HOST", "localhost"),
         "PORT":
-        os.environ.get("SQL_PORT", "5432"),
+            os.environ.get("SQL_PORT", "5432"),
     }
 }
 
@@ -112,19 +118,19 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME':
-        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+            'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
         'NAME':
-        'django.contrib.auth.password_validation.MinimumLengthValidator',
+            'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
         'NAME':
-        'django.contrib.auth.password_validation.CommonPasswordValidator',
+            'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME':
-        'django.contrib.auth.password_validation.NumericPasswordValidator',
+            'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 

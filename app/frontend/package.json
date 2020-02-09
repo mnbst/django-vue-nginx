@@ -13,6 +13,7 @@
     "axios": "^0.19.2",
     "babel-cli": "^6.26.0",
     "core-js": "^3.6.2",
+    "typescript": "^3.7.5",
     "vue": "^2.6.11",
     "vue-axios": "^2.1.5",
     "vue-router": "^3.1.3",

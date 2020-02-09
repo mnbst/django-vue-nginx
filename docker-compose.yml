@@ -7,13 +7,11 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
-    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./app/:/usr/src/app/
       - frontend:/usr/src/app/frontend
     ports:
       - 8000:8000
-      - 3000:3000
     env_file:
       - ./.env.dev
     depends_on:

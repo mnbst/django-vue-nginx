@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
-from django.utils.datetime_safe import datetime
 
 
 class Word(models.Model):
