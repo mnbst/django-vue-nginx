@@ -4,7 +4,7 @@
             <v-col cols="12">
                 <h2>fetch data</h2>
                 <div class="dark_terminal">
-                    <virtual-list :size="30" :remain="14" :start="items.length">
+                    <virtual-list :size="30" :remain="10" :start="items.length">
                         <ul
                                 class="white--text font-weight-black"
                                 v-for="item in items"

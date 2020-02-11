@@ -1,5 +1,3 @@
-from django.template.response import TemplateResponse
-from django.http import HttpResponse
 from rest_framework import viewsets
 from .models import Word
 from .models import Caption
@@ -9,8 +7,6 @@ from .serializers import WordSerializer
 from .serializers import CaptionSerializer
 from .serializers import VideoSerializer
 from .serializers import FetchSettingSerializer
-from django.views.generic import TemplateView
-from django.views.decorators.cache import never_cache
 
 
 class WordView(viewsets.ModelViewSet):

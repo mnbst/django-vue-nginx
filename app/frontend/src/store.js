@@ -4,6 +4,21 @@ import axios from 'axios';
 
 Vue.use(vuex, axios)
 
+function dynamicSort(property) {
+    let sortOrder = 1;
+    if (property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a, b) {
+        /* next line works with strings and numbers,
+         * and you may want to customize it to your needs
+         */
+        let result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
+
 export default new vuex.Store({
     state: {
         words: [],
@@ -13,18 +28,19 @@ export default new vuex.Store({
     },
     actions: {
         loadWords({
-            commit
-        }) {
+                      commit
+                  }) {
             axios.get('/api/words').then(data => {
                 let words = data.data
+                words.sort(dynamicSort('word'))
                 commit('SET_WORDS', words)
             }).catch(e => {
                 console.log(e);
             })
         },
         loadVideos({
-            commit
-        }) {
+                       commit
+                   }) {
             axios.get('/api/videos').then(data => {
                 let videos = data.data
                 for (let k in videos) {
@@ -36,18 +52,18 @@ export default new vuex.Store({
             })
         },
         loadFetchSetting({
-            commit
-        }) {
+                             commit
+                         }) {
             axios.get('/api/fetch_setting').then(data => {
-                let fetch_setting=data.data[0]
+                let fetch_setting = data.data[0]
                 commit('SET_FETCH_SETTING', fetch_setting)
             }).catch(e => {
                 console.log(e);
             })
         },
         loadCaptions({
-            commit
-        }) {
+                         commit
+                     }) {
             axios.get('/api/captions').then(data => {
                 let captions = data.data
                 commit('SET_CAPTIONS', captions)

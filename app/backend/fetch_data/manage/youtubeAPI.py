@@ -1,17 +1,18 @@
-# -*- coding: utf-8 -*-
 import asyncio
+import urllib.request
 
-from channels.consumer import AsyncConsumer
+import isodate
 from googleapiclient.discovery import build
 import requests
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElementTree
 import nltk
 import re
 from html import unescape
 from bs4 import BeautifulSoup
-import urllib
+from urllib.error import HTTPError, URLError
 from ...dictionary_console.models import *
 import json
+from itertools import islice
 
 
 class YouTubeData:
@@ -21,9 +22,10 @@ class YouTubeData:
 
 
 class FetchDataFromYoutube:
-    def __init__(self, settings, ws):
+    def __init__(self, settings, ws, interrupted=False):
         self.settings = json.loads(settings)
         self.ws = ws
+        self.interrupted = interrupted
 
     Y_KEY = "AIzaSyCnT246VRUMqERUaeipy34xQB_5SLVlS44"
     YOUTUBE_API_SERVICE_NAME = "youtube"
@@ -45,35 +47,27 @@ class FetchDataFromYoutube:
         'KaXx2z5rYIA', 'MMIABcbEIGg', '9usVvl4q2Dc', '11I-WD-yBDU',
         'TRsf-OH9rM4'
     ]
-    # try:
-    #     youtube_search(args)
-    # except HttpError as e:
-    #     print("An HTTP error %d occurred:\n%s" %
-    #           (e.resp.status, e.content))
-    # Set DEVELOPER_KEY to we API key value from worde APIs & auword > Registered apps
-    # tab of
-    #   https://cloud.google.com/console
-    # ＡＰＩデベロッパーキーを入れる
+    MAX_VIDEO_COUNT_PER_PAGE = 5
 
     # 除外する記号
-    regex = re.compile(r"[!-,.-/:-@[-`{-㿿]")
+    regex_except_hyphen = re.compile(r"[!-,.-/:-@[-`{-㿿]")
+    regex = re.compile(r"[!-/:-@[-`{-㿿]")
     # アルファベット
     reg = re.compile(r'[a-zA-Z\s]+')
 
     async def send_to_websocket(self, message: str):
-        await self.ws.send({
+        await asyncio.wait([self.ws.send({
             'type': 'websocket.send',
             'text': message
-        })
-        await asyncio.sleep(0.01)
+        })])
 
     async def youtube_search(self):
-        await self.send_to_websocket('wait...')
+        await self.send_to_websocket('fetching...')
         Video.objects.filter(
             video_href__in=self.settings['video_to_delete'] + self.settings[
                 'excepted_href'] + self.EXCEPT_VIDEO).delete()
         args = YouTubeData(
-            q='indonesia', max_results=50)
+            q='indonesia', max_results=self.MAX_VIDEO_COUNT_PER_PAGE)
 
         youtube = build(self.YOUTUBE_API_SERVICE_NAME,
                         self.YOUTUBE_API_VERSION,
@@ -111,33 +105,35 @@ class FetchDataFromYoutube:
 
     async def fill_in_db(self, response):
 
-        n = 0
+        video_data = dict()
         # Add each result to worde appropriate list, and worden display worde lists of
         # matching videos, channels, and playlists.
         for search_result in response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
                 href = search_result["id"]["videoId"]
-                if href in self.EXCEPT_VIDEO:
+                if href in self.EXCEPT_VIDEO + self.settings['excepted_href']:
                     continue
             else:
                 continue
 
-            video_data = Video.objects.filter(
-                video_href__in=href).values_list('pk', flat=True)
+            try:
+                video_data = Video.objects.get(video_href=href)
+            except Video.DoesNotExist:
+                await self.send_to_websocket(f'getting video id: {href}')
 
             if video_data and href not in self.settings['video_to_renewal']:
                 continue
 
-            script = []
-            lang_codes = []
+            lang_codes = list()
             url = f'https://www.youtube.com/api/timedtext?type=list&v={href}'
             req = requests.get(url)
             try:
-                root = ET.fromstring(req.content)
-            except ET.ParseError:
+                root = ElementTree.fromstring(req.content)
+            except ElementTree.ParseError:
                 continue
 
             # 字幕言語取得
+            r = dict()
             for r in root.iter():
                 lang_code = r.attrib.get('lang_code')
                 if lang_code is not None:
@@ -147,35 +143,39 @@ class FetchDataFromYoutube:
             if len(lang_codes) < self.settings['language_limit'] + 1 and 'id' in lang_codes:
                 name = r.attrib.get('name')
                 await self.send_to_websocket('VIDEO TITLE: ' + search_result['snippet']['title'])
-                script, element = await self.mkscript(name, href)
-
-                if len(script) < self.settings['minimum_sentences']:
-                    continue
-
-                n += 1
                 title = search_result["snippet"]["title"]
                 title = unescape(title)
-                # caption=json.dumps(script, ensure_ascii=False)
+                video = Video(video_href=href, video_img=search_result["snippet"]["thumbnails"]["medium"]["url"],
+                              video_time=self.get_duration(href), video_title=title, video_genre=[],
+                              youtubeID=search_result["snippet"]["channelId"],
+                              video_upload_date=search_result["snippet"]["publishedAt"])
 
-                # set to firestore
-                # Caption.objects.create()
+                script, element = await self.make_script(name, video_instance=video)
+                if len(script) < self.settings['minimum_sentence']:
+                    await self.send_to_websocket(f'"{title}" has short sentences')
+                    continue
 
-        return n
+                # while True:
+                #     batch = list(islice(script, 100))
+                #     if not batch:
+                #         break
+                #     Caption.objects.bulk_create(batch, 100)
+                # video.save()
 
-    async def mkscript(self, name, href):
-        url = f"http://video.google.com/timedtext?lang=id&name={name}&v={href}"
+        return True
+
+    async def make_script(self, name, video_instance: Video):
+        url = f"http://video.google.com/timedtext?lang=id&name={name}&v={video_instance.video_href}"
         req = requests.get(url)
-        root = ET.fromstring(req.content)
+        root = ElementTree.fromstring(req.content)
 
         # 字幕つくる。構成単語も
-        element = {}
-        script = []
-        index = 0
+        element = dict()
+        script = list()
+        index = int()
 
         for r in root.iter():
-
-            word = []
-            imi = []
+            imi = list()
             try:
                 text = re.sub("\n", " ", r.text)
                 text = unescape(text)
@@ -187,13 +187,12 @@ class FetchDataFromYoutube:
 
             try:
                 row = nltk.tokenize.word_tokenize(text)
-                row = [re.sub(self.regex, '', item) for item in row]
-                word = [i for i in row if not i == '' and not i == '-']
+                row = [re.sub(self.regex_except_hyphen, '', item) for item in row]
+                word = [i for i in row if i and not i == '-']
             except TypeError:
-                word = []
                 continue
 
-            if word is None:
+            if not word:
                 continue
 
             start = r.attrib.get('start')
@@ -209,84 +208,60 @@ class FetchDataFromYoutube:
                 end_time = start_time
 
             # DBから意味を取得。なければinsert
-            idiom = False
+            idiom_flag = False
             for j, w in enumerate(word):
-                if idiom == True:
+                if idiom_flag:
                     word.remove(w)
-                    idiom = False
-                    try:
-                        w = word[j]
-                    except:
-                        continue
+                    idiom_flag = False
+                    w = word[j]
 
-                if w == '-' or re.match(self.regex, w):
+                if re.match(self.regex, w):
                     word.remove(w)
-                    try:
-                        w = word[j]
-                    except:
-                        continue
+                    w = word[j]
 
-                meaning = ''
+                meaning = str()
+                idiom = str()
                 w = w.lower()
                 if w.startswith('-') or w.endswith('-'):
                     w = re.sub('-', '', w)
 
                 if w != 'di' and j + 1 != len(word) and word[
-                    j +
-                    1] != 'ini' and w != '' and word[j + 1] != '' and word[
-                    j + 1] != '-' and w != '-' and not self.regex.match(
-                    w) and not self.regex.match(word[j + 1]):
-                    if self.regex.match(w):
-                        print('error')
-                    i_word = w + ' ' + word[j + 1]
-                    i_word = i_word.lower()
-                    meaning = self.getimi(i_word)
+                    j + 1] != 'ini' and w and word[j + 1] and word[
+                    j + 1] != '-' and not self.regex.match(w) \
+                        and not self.regex_except_hyphen.match(word[j + 1]):
+                    idiom = w + ' ' + word[j + 1]
+                    idiom = idiom.lower()
+                    meaning = self.get_imi(idiom)
 
-                if (meaning != '' and idiom == False):
-                    w = i_word
-                    idiom = True
-                elif (meaning == ''):
-                    meaning = self.getimi(w)
+                if meaning and idiom_flag:
+                    w = idiom
+                    idiom_flag = True
+                elif not meaning:
+                    meaning = self.get_imi(w)
 
-                if meaning != '' and w in element:
+                if meaning and w in element:
                     element[w].append(index)
-                elif meaning != '' and w not in element:
+                elif meaning and w not in element:
                     element[w] = [index]
-                    if idiom == True:
-                        print('idiom found')
+                    if idiom_flag:
+                        await self.send_to_websocket('idiom found')
 
-                if word[j] != '':
+                if word[j]:
                     imi.append(meaning)
                     word[j] = w
 
-            word = [i for i in word if not i == '']
-            token = {"word": [], "imi": []}
-            token["word"] = word
-            token["imi"] = imi
-            textTokenized = token
-
-            sentence = {
-                "index": 0,
-                "href": href,
-                "start_time": 0,
-                "end_time": 0,
-                "text": '',
-                "textTokenized": textTokenized
-            }
-            sentence["index"] = index
-            sentence["start_time"] = start_time
-            sentence["end_time"] = end_time
-            sentence["text"] = text
-
+            word = [i for i in word if i]
+            sentence = Caption(video_href=video_instance, index=index, start_time=start_time,
+                               end_time=end_time, text=text,
+                               word=word, word_imi=imi)
             script.append(sentence)
             index = index + 1
 
         return script, element
 
-    def getimi(self, w):
-        meaning = ''
-        meaning = self.getimifromdb(w)
-        if meaning != '':
+    def get_imi(self, w):
+        meaning = self.get_meaning_from_db(w)
+        if meaning:
             return meaning
 
         url = f'https://njjn.weblio.jp/content/{w}'
@@ -294,151 +269,151 @@ class FetchDataFromYoutube:
         soup = BeautifulSoup(r.text, 'lxml')
 
         try:
-            elmnts_crslnk = soup.find_all(class_="crosslink")
-            elmnts_igngj = soup.find_all(class_="Igngj")
-            midashigo = soup.find_all(class_='midashigo')
-            if elmnts_crslnk != [] or elmnts_igngj != []:
-                if w == midashigo[0].text.lower().strip():
-                    meaning = self.gettext(elmnts_crslnk + elmnts_igngj)
-        except urllib.error.HTTPError:
+            elements_crosslink = soup.find_all(class_="crosslink")
+            elements_igngj = soup.find_all(class_="Igngj")
+            elements_midashigo = soup.find_all(class_='midashigo')
+            if elements_crosslink != [] or elements_igngj != []:
+                if w == elements_midashigo[0].text.lower().strip():
+                    meaning = self.format_text(elements_crosslink + elements_igngj)
+        except HTTPError:
             meaning = ""
-        except urllib.error.URLError:
+        except URLError:
             meaning = ""
 
         # 接頭語・接尾語とか。登録したくない奴はリターンする。
-        if not meaning and '-' in w and not ' ' in w:
+        if not meaning and '-' in w and ' ' not in w:
             w2 = w.split('-')[1]
             w1 = w.split('-')[0]
-            if w2 != '' and w1 in w2:
-                meaning = self.getimi(w2)
-            if meaning != '':
+            if w2 and w1 in w2:
+                meaning = self.get_imi(w2)
+            if meaning:
                 meaning = meaning + " (\"-\"=複数/動作の繰り返し)"
                 return meaning
         elif not meaning and w.endswith('nya'):
             w1 = w[:len(w) - 3]
-            meaning = self.self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+nya=特定の事柄・人を表す接尾辞)"
                 return meaning
         elif not meaning and w.endswith('kah'):
             w1 = w[:len(w) - 3]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+kah=～ですか？)"
                 return meaning
         elif not meaning and w.endswith('an') and not w.endswith('kan'):
             w1 = w[:len(w) - 2]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+an=単位/内容を特定する接尾辞)"
                 return meaning
-        elif not meaning and w.endswith('in') and not '-' in w:
+        elif not meaning and w.endswith('in') and '-' not in w:
             w1 = w[:len(w) - 2]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+in=ジャカルタ方言・他動詞の語幹をつくる接尾辞)"
                 return meaning
         elif not meaning and w.endswith('i'):
             w1 = w[:len(w) - 1]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+i=前置詞を代替する接尾辞/動作の反復・集中)"
                 return meaning
         elif not meaning and w.endswith('kan'):
             w1 = w[:len(w) - 3]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+kan=他動詞の語幹をつくる接尾辞)"
                 return meaning
         elif not meaning and w.startswith('mu'):
             w1 = w[2:]
-            meaning = self.getimi(w1)
-            if meaning != '' and not '=' in meaning:
+            meaning = self.get_imi(w1)
+            if meaning and '=' not in meaning:
                 meaning = meaning + " (+mu=君)"
                 return meaning
         elif not meaning and w.startswith('ku'):
             w1 = w[2:]
-            meaning = self.getimi(w1)
-            if meaning != '' and not '=' in meaning:
+            meaning = self.get_imi(w1)
+            if meaning and '=' not in meaning:
                 meaning = meaning + " (+ku=僕)"
                 return meaning
         elif not meaning and w.endswith('lah'):
             w1 = w[:len(w) - 3]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+lah=強調)"
                 return meaning
         elif not meaning and w.endswith('pun'):
             w1 = w[:len(w) - 3]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+pun=～でさえ/～でも)"
                 return meaning
         elif not meaning and w.endswith('mu'):
             w1 = w[:len(w) - 2]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+mu=君)"
                 return meaning
         elif not meaning and w.endswith('ku'):
             w1 = w[:len(w) - 2]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+ku=僕)"
                 return meaning
 
         if not meaning and w.startswith('di'):
             w1 = w[2:]
-            meaning = self.getimi(w1)
+            meaning = self.get_imi(w1)
 
             if meaning == '':
                 if w1.startswith(('l', 'r', 'm', 'n', 'w', 'y')):
                     w2 = 'me' + w1
-                    meaning = self.getimi(w2)
+                    meaning = self.get_imi(w2)
                 elif w1.startswith('t'):
                     w2 = 'men' + w1[1:]
-                    meaning = self.getimi(w2)
+                    meaning = self.get_imi(w2)
                 elif w1.startswith('p'):
                     w2 = 'mem' + w1[1:]
-                    meaning = self.getimi(w2)
+                    meaning = self.get_imi(w2)
                 elif w1.startswith(('c', 'j', 'z', 'sy', 'd')):
                     w2 = 'men' + w1
-                    meaning = self.getimi(w2)
+                    meaning = self.get_imi(w2)
                 elif w1.startswith('b'):
                     w2 = 'mem' + w1
-                    meaning = self.getimi(w2)
+                    meaning = self.get_imi(w2)
                 elif w1.startswith('s'):
                     w2 = 'meny' + w1[1:]
-                    meaning = self.getimi(w2)
+                    meaning = self.get_imi(w2)
                 else:
                     w2 = 'meng' + w1
-                    meaning = self.getimi(w2)
+                    meaning = self.get_imi(w2)
 
-            if meaning != '':
+            if meaning:
                 meaning = meaning + " (+di=受け身を表す接頭辞/～で、～に)"
                 return meaning
         elif not meaning and w.startswith('ber'):
             w1 = w[3:]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+ber=～を持っている／身につけている／伴っている)"
                 return meaning
         elif not meaning and w.startswith('ter'):
             w1 = w[3:]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+ter=最も～/～してしまう，～してしまっている)"
                 return meaning
         elif not meaning and w.startswith('se'):
             w1 = w[2:]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+se=1つの/1回の/同じ/全体)"
                 return meaning
         elif not meaning and w.startswith('ke') and w.endswith('an'):
             w1 = w[2:len(w) - 2]
-            meaning = self.getimi(w1)
-            if meaning != '':
+            meaning = self.get_imi(w1)
+            if meaning:
                 meaning = meaning + " (+ke~an=ke--an派生語を作る共接辞)"
                 return meaning
 
@@ -446,44 +421,43 @@ class FetchDataFromYoutube:
             w = re.sub('-', '', w)
         word_ini = w[0:1]
 
-        if meaning != '':
+        if meaning:
             meaning = meaning.strip()
             # set word
-            FireStore.dictionary_db(w, word_ini, meaning)
-        elif meaning == '' and not ' ' in w:
-            # set ng word
-            FireStore.dictionary_db_ng(w, word_ini)
+            Word(word=w, word_ini=word_ini, word_imi=meaning).save()
 
         return meaning
 
-    def getimifromdb(self, w):
+    @staticmethod
+    def get_meaning_from_db(w):
         try:
-            doc = FireStore.get_word(w)
-        except google.api_core.exceptions.InvalidArgument:
+            doc = Word.objects.get(word=w)
+        except Word.DoesNotExist:
             meaning = ""
             return meaning
 
-        if doc._exists == True:
-            meaning = doc._data['word_imi']
+        if doc:
+            meaning = doc.word_imi
             return meaning
         else:
             meaning = ''
         return meaning
 
-    def gettext(self, elments):
-        contents = []
-        setumai = False
+    def format_text(self, elements):
+        contents = list()
+        key1 = str()
+        setsumei = False
         key = ''
-        for tag in elments:
+        for tag in elements:
             contents = contents + tag.text.strip().split(',')
         c_unique = list(set(contents))
         for c in c_unique:
             if u'【説明】' in c:
-                setumai = True
+                setsumei = True
                 key = c
-                key1 = ' / ' + key.split(' / ')[1]
+                key1 = key.split(' / ')[1]
                 break
-        if (setumai == True):
+        if setsumei:
             c_unique.remove(u'説明')
             c_unique.remove(key)
             for c in c_unique:
@@ -493,4 +467,13 @@ class FetchDataFromYoutube:
                 elif self.reg.match(c):
                     c_unique.remove(c)
             c_unique.append(key1)
-        return ','.join(c_unique)
+        return '、'.join(c_unique)
+
+    def get_duration(self, href):
+        url = f"https://www.googleapis.com/youtube/v3/videos?id={href}&key={self.Y_KEY}&part=contentDetails"
+        response = urllib.request.urlopen(url).read()
+        data = json.loads(response)
+        duration = data['items'][0]['contentDetails']['duration']
+        dur = isodate.parse_duration(duration).total_seconds()
+        dur = int(dur)
+        return '{:2}:{:02}'.format(dur // 60, dur % 60)
