@@ -14,8 +14,10 @@ services:
       - 8000:8000
     env_file:
       - ./.env.dev
+    command: python3 manage.py runserver 0.0.0.0:8000
     depends_on:
       - db
+      - redis
   db:
     container_name: postgres
     restart: always
@@ -28,6 +30,26 @@ services:
       - 15432:5432
     volumes:
       - ./postgres_data/:/var/lib/postgresql/data
+  redis:
+    image: redis:5.0.7-alpine
+    container_name: redis
+    ports:
+      - 6379:6379
+  celery:
+    container_name: celery
+    restart: always
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    volumes:
+      - ./app/:/usr/src/app/
+      - frontend:/usr/src/app/frontend
+    ports: []
+    command: celery -A backend worker -l info
+    depends_on:
+      - db
+      - redis
+      - web
   frontend:
     container_name: vue
     restart: on-failure:1

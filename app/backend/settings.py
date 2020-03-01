@@ -40,9 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # own
     'backend.dictionary_console',
-    'backend.fetch_data',
     # additional
     'channels',
+    'channels_redis',
     'rest_framework',
     'webpack_loader',
 ]
@@ -64,13 +64,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
-
-ASGI_APPLICATION = 'backend.fetch_data.routing.application'
+ASGI_APPLICATION = 'backend.routing.application'
 
 TEMPLATES = [
     {
@@ -96,19 +90,12 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE":
-            os.environ.get("SQL_ENGINE", "django.db.backends.sqlite3"),
-        "NAME":
-            os.environ.get("SQL_DATABASE", os.path.join(BASE_DIR, "db.sqlite3")),
-        "USER":
-            os.environ.get("SQL_USER", "user"),
-        "PASSWORD":
-            os.environ.get("SQL_PASSWORD", "password"),
-        "HOST":
-            os.environ.get("SQL_HOST", "localhost"),
-        "PORT":
-            os.environ.get("SQL_PORT", "5432"),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'hello_django_dev',
+        'USER': 'hello_django',
+        'PASSWORD': 'hello_django',
+        'HOST': 'db'
     }
 }
 
@@ -161,4 +148,21 @@ WEBPACK_LOADER = {
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
+}
+
+# Celery config
+CELERYD_CONCURRENCY = 2
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_IMPORTS = ('backend.tasks',)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [('redis', 6379)],
+        },
+    },
 }

@@ -1,14 +1,17 @@
 from rest_framework import serializers
-from .models import Word
-from .models import Video
-from .models import Caption
-from .models import FetchSetting
+from .models import *
 
 
 class WordSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Word
         fields = ('id', 'url', 'word_ini', 'word', 'word_imi')
+
+
+class WordAppearanceSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = WordAppearance
+        fields = ('id', 'url', 'word_id', 'appearance')
 
 
 class CaptionSerializer(serializers.HyperlinkedModelSerializer):
@@ -31,4 +34,4 @@ class FetchSettingSerializer(serializers.HyperlinkedModelSerializer):
         model = FetchSetting
         fields = ('id', 'url', 'authority', 'excepted_href', 'page_to_crawl',
                   'language_limit', 'minimum_sentence', 'video_to_delete',
-                  'video_to_renewal')
+                  'video_to_renewal', 'video_per_page')

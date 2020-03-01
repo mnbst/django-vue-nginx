@@ -22,7 +22,9 @@
                                 <v-toolbar-title class="headline font-weight-bold">setting</v-toolbar-title>
                                 <v-spacer></v-spacer>
                                 <v-card-actions>
-                                    <v-btn class="primary" v-on:click="modify(fetch_setting)">設定を保存</v-btn>
+                                    <v-btn v-if="activate===false" class="primary" v-on:click="modify(fetch_setting)">
+                                        設定を保存
+                                    </v-btn>
                                     <v-btn
                                             v-if="activate===false"
                                             color="orange font-weight-bold"
@@ -83,6 +85,21 @@
                         </v-row>
                         <v-row>
                             <v-col cols="2">
+                                <p class="text-center">ページ毎の取得動画数</p>
+                            </v-col>
+                            <v-col cols="2">
+                                <number-input
+                                        inline
+                                        controls
+                                        v-model="fetch_setting.video_per_page"
+                                        :min="1"
+                                        :max="50"
+                                        :step="1"
+                                ></number-input>
+                            </v-col>
+                        </v-row>
+                        <v-row>
+                            <v-col cols="2">
                                 <p class="text-center">削除動画id</p>
                             </v-col>
                             <v-btn
@@ -102,10 +119,11 @@
                             >
                                 <v-icon dark>remove_circle</v-icon>
                             </v-btn>
-                            <v-col cols="2" v-for="(input, index) in fetch_setting.video_to_delete" :key="index">
+                            <v-col cols="2" v-for="(_,index_of_delete) in fetch_setting.video_to_delete"
+                                   :key="index_of_delete">
                                 <v-text-field
                                         class="my-n2 mb-n7 pa-0"
-                                        v-model="fetch_setting.video_to_delete[index]"
+                                        v-model="fetch_setting.video_to_delete[index_of_delete]"
                                 ></v-text-field>
                             </v-col>
                         </v-row>
@@ -130,10 +148,11 @@
                             >
                                 <v-icon dark>remove_circle</v-icon>
                             </v-btn>
-                            <v-col cols="2" v-for="(_, index) in fetch_setting.video_to_renewal" :key="index">
+                            <v-col cols="2" v-for="(_,index_of_renewal) in fetch_setting.video_to_renewal"
+                                   :key="index_of_renewal">
                                 <v-text-field
                                         class="my-n2 mb-n7 pa-0"
-                                        v-model="fetch_setting.video_to_renewal[index]"
+                                        v-model="fetch_setting.video_to_renewal[index_of_renewal]"
                                 ></v-text-field>
                             </v-col>
                         </v-row>
@@ -158,9 +177,10 @@
                             >
                                 <v-icon dark>remove_circle</v-icon>
                             </v-btn>
-                            <v-col cols="2" v-for="(_,i) in fetch_setting.excepted_href" :key="i">
+                            <v-col cols="2" v-for="(_,index_of_excepted) in fetch_setting.excepted_href"
+                                   :key="index_of_excepted">
                                 <v-text-field class="my-n2 mb-n7 pa-0"
-                                              v-model="fetch_setting.excepted_href[i]"></v-text-field>
+                                              v-model="fetch_setting.excepted_href[index_of_excepted]"></v-text-field>
                             </v-col>
                         </v-row>
                     </v-col>
@@ -178,21 +198,19 @@
     import virtualList from "vue-virtual-scroll-list";
 
     Vue.use(VueNumberInput);
-    const re = /\S+/;
-    const promise = function (item) {
-        return new Promise(function (resolve) {
-            Object.keys(item).forEach(function (prop) {
-                if (typeof item[prop] == "object") {
-                    try {
-                        item[prop] = item[prop].filter(item => item.match(re));
-                    } catch (_) {
-                        return null;
-                    }
+    const re = /[a-zA-Z\s]/;
+    const promise = (settings) => new Promise((resolve) => {
+        Object.keys(settings).forEach(function (prop) {
+            if (typeof settings[prop] === "object") {
+                try {
+                    settings[prop] = settings[prop].filter(item => item.match(re));
+                } catch (_) {
+                    return null;
                 }
-            });
-            resolve(item);
+            }
         });
-    };
+        resolve(settings);
+    });
     const loc = window.location;
     let wsStart = "ws://";
     if (loc.protocol === "https:") {
@@ -204,8 +222,8 @@
     export default {
         name: "FetchData",
         data: () => ({
-            items: ["hello"],
-            activate: false
+            items: ["HELLO"],
+            activate: false,
         }),
         components: {
             "virtual-list": virtualList
@@ -224,14 +242,16 @@
                 form.splice(-1, 1);
             },
             modify(setting) {
-                promise(setting).then(function (setting) {
+                promise(setting).then((setting) => {
                     axios
                         .patch(setting.url, setting)
                         .then(response => {
                             console.log(response);
+                            this.$data.items.push('settings saved ✅')
                         })
                         .catch(e => {
                             console.log(e);
+                            this.$data.items.push('ERROR while saving')
                         });
                 });
             },
@@ -239,25 +259,25 @@
                 let _this = this;
                 socket = new WebSocket(endpoint);
                 socket.onmessage = function (e) {
-                    console.log("message", e);
                     _this.$data.items.push(e.data);
                 };
-                socket.onopen = function (e) {
-                    console.log("open", e);
+                socket.onopen = function () {
                     _this.$data.activate = true;
                     socket.send(JSON.stringify(setting));
                 };
-                socket.onerror = function (e) {
-                    console.log("error", e);
-                };
-                socket.onclose = function (e) {
-                    console.log("close", e);
+                socket.onerror = function () {
                     _this.$data.activate = false;
                 };
-                console.log(setting);
+                socket.onclose = function (e) {
+                    console.log(e);
+                    _this.$data.items.push('connection closed 👋');
+                    _this.$data.activate = false;
+                };
             },
             stop_fetch() {
+                let _this = this;
                 if (socket && socket.readyState === 1) {
+                    _this.$data.items.push('closing...');
                     socket.close()
                 }
             },
@@ -265,7 +285,7 @@
     };
 </script>
 
-<style scoped>
+<style>
     .dark_terminal {
         background: black;
         border-radius: 10px;
