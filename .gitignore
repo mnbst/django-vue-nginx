@@ -2,3 +2,4 @@ env
 get_caption_app
 .vscode/*
 .cache/
+postgres_data
