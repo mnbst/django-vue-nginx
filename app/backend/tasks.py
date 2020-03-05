@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import os
 import re
 import urllib.request
 import xml.etree.ElementTree as ElementTree
@@ -14,8 +15,9 @@ from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
 from celery import shared_task
 from channels.layers import get_channel_layer
-from django.apps import apps
+# from django.apps import apps
 from googleapiclient.discovery import build
+from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
 from .dictionary_console.models import *
@@ -27,8 +29,18 @@ def scraping(settings: dict, group_name: str):
     youtube_scraping.youtube_search()
 
 
+class MemoryCache(Cache):
+    _CACHE = {}
+
+    def get(self, url):
+        return MemoryCache._CACHE.get(url)
+
+    def set(self, url, content):
+        MemoryCache._CACHE[url] = content
+
+
 class YoutubeScraping:
-    Y_KEY = "AIzaSyDXb3E9yNfssZPYmCPL2zW53sAvxPrZ0WE"
+    Y_KEY = os.environ.get('DEVELOPER_KEY')
     YOUTUBE_API_SERVICE_NAME = "youtube"
     YOUTUBE_API_VERSION = "v3"
     EXCEPT_VIDEO = [
@@ -74,7 +86,7 @@ class YoutubeScraping:
 
         youtube = build(self.YOUTUBE_API_SERVICE_NAME,
                         self.YOUTUBE_API_VERSION,
-                        developerKey=self.Y_KEY)
+                        developerKey=self.Y_KEY, cache=MemoryCache())
 
         # Call worde search.list mewordod to retrieve results matching worde specified
         try:
@@ -117,10 +129,10 @@ class YoutubeScraping:
                 return
 
     def fill_in_db(self, response):
-        video_model = apps.get_model(app_label='dictionary_console', model_name='Video')
-        word_appearance_model = apps.get_model(app_label='dictionary_console', model_name='WordAppearance')
-        word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
-        caption_model = apps.get_model(app_label='dictionary_console', model_name='Caption')
+        # video_model = apps.get_model(app_label='dictionary_console', model_name='Video')
+        # WordAppearance = apps.get_model(app_label='dictionary_console', model_name='WordAppearance')
+        # word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
+        # caption_model = apps.get_model(app_label='dictionary_console', model_name='Caption')
         video_data = dict()
         for search_result in response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
@@ -131,8 +143,8 @@ class YoutubeScraping:
                 continue
 
             try:
-                video_data = video_model.objects.get(video_href=href)
-            except video_model.DoesNotExist:
+                video_data = Video.objects.get(video_href=href)
+            except Video.DoesNotExist:
                 self.send_to_websocket(f'getting video id: {href}')
 
             if video_data and href not in self.settings['video_to_renewal']:
@@ -159,10 +171,10 @@ class YoutubeScraping:
                 self.send_to_websocket('VIDEO TITLE: ' + search_result['snippet']['title'])
                 title = search_result["snippet"]["title"]
                 title = unescape(title)
-                video = video_model(video_href=href, video_img=search_result["snippet"]["thumbnails"]["medium"]["url"],
-                                    video_time=self.get_duration(href), video_title=title, video_genre=[],
-                                    youtubeID=search_result["snippet"]["channelId"],
-                                    video_upload_date=search_result["snippet"]["publishedAt"])
+                video = Video(video_href=href, video_img=search_result["snippet"]["thumbnails"]["medium"]["url"],
+                              video_time=self.get_duration(href), video_title=title, video_genre=[],
+                              youtubeID=search_result["snippet"]["channelId"],
+                              video_upload_date=search_result["snippet"]["publishedAt"])
 
                 script, element = self.make_script(name, video_instance=video)
                 if script is None and element is None:
@@ -173,25 +185,25 @@ class YoutubeScraping:
                 word_appearances = list()
                 for el in element:
                     try:
-                        db_data = word_appearance_model.objects.filter(word=el)
+                        db_data = WordAppearance.objects.filter(word=el)
                         print(db_data['el'])
-                    except word_appearance_model.DoesNotExist:
+                    except WordAppearance.DoesNotExist:
                         print(f'{el} not in db')
-                    word_instance = word_model.objects.filter(word=el)
-                    word_appearance = word_appearance_model(word=word_instance,
-                                                            appearance=json.dumps({href: element[el]}))
+                    word_instance = Word.objects.filter(word=el)
+                    word_appearance = WordAppearance(word=word_instance,
+                                                     appearance=json.dumps({href: element[el]}))
                     word_appearances.append(word_appearance)
                 while True:
                     if not script and not element:
                         break
-                    caption_model.objects.bulk_create(script, batch_size=50)
-                    word_appearance_model.objects.bulk_create(element, batch_size=50)
+                    Caption.objects.bulk_create(script, batch_size=50)
+                    WordAppearance.objects.bulk_create(element, batch_size=50)
                 video.save()
 
         return False
 
     def make_script(self, name: str, video_instance):
-        caption_model = apps.get_model(app_label='dictionary_console', model_name='Caption')
+        # caption_model = apps.get_model(app_label='dictionary_console', model_name='Caption')
         url = f"http://video.google.com/timedtext?lang=id&name={name}&v={video_instance.video_href}"
         req = requests.get(url)
         root = ElementTree.fromstring(req.content)
@@ -279,17 +291,17 @@ class YoutubeScraping:
                     word[j] = w
 
             word = [i for i in word if i]
-            sentence = caption_model(video_href=video_instance, index=index, start_time=start_time,
-                                     end_time=end_time, text=text,
-                                     word=word, word_imi=imi)
+            sentence = Caption(video_href=video_instance, index=index, start_time=start_time,
+                               end_time=end_time, text=text,
+                               word=word, word_imi=imi)
             script.append(sentence)
             index = index + 1
 
         return script, element
 
     def get_imi(self, w):
-        word_appearance_model = apps.get_model(app_label='dictionary_console', model_name='WordAppearance')
-        word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
+        # WordAppearance = apps.get_model(app_label='dictionary_console', model_name='WordAppearance')
+        # word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
         meaning = self.get_meaning_from_db(w)
         if meaning:
             return meaning
@@ -454,17 +466,17 @@ class YoutubeScraping:
         if meaning:
             meaning = meaning.strip()
             # set word
-            word_instance = word_model(word=w, word_ini=word_ini, word_imi=meaning)
+            word_instance = Word(word=w, word_ini=word_ini, word_imi=meaning)
             word_instance.save()
-            word_appearance_model(word=word_instance).save()
+            WordAppearance(word=word_instance).save()
         return meaning
 
     @staticmethod
     def get_meaning_from_db(w):
-        word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
+        # word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
         try:
-            doc = word_model.objects.get(word=w)
-        except word_model.DoesNotExist:
+            doc = Word.objects.get(word=w)
+        except Word.DoesNotExist:
             meaning = ""
             return meaning
 
