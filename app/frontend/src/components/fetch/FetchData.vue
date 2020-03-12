@@ -268,8 +268,7 @@
                 socket.onerror = function () {
                     _this.$data.activate = false;
                 };
-                socket.onclose = function (e) {
-                    console.log(e);
+                socket.onclose = function () {
                     _this.$data.items.push('connection closed 👋');
                     _this.$data.activate = false;
                 };

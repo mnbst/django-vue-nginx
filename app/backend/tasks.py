@@ -8,25 +8,23 @@ import xml.etree.ElementTree as ElementTree
 from html import unescape
 from urllib.error import HTTPError, URLError
 
+import django
 import isodate
 import nltk
 import requests
 from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
-from celery import shared_task
 from channels.layers import get_channel_layer
 # from django.apps import apps
 from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
+django.setup()
 from .dictionary_console.models import *
 
-
-@shared_task
-def scraping(settings: dict, group_name: str):
-    youtube_scraping = YoutubeScraping(settings=settings, group_name=group_name)
-    youtube_scraping.youtube_search()
+connect_timeout, read_timeout = 5.0, 30.0
 
 
 class MemoryCache(Cache):
@@ -67,19 +65,20 @@ class YoutubeScraping:
     # アルファベット
     REGEX_ALPHABET = re.compile(r'[a-zA-Z\s]')
 
-    def __init__(self, settings: dict, group_name: str):
+    def __init__(self, settings: dict):
         self.settings = settings
-        self.group_name = group_name
         self.channel_layer = get_channel_layer()
 
     def send_to_websocket(self, message: str):
-        async_to_sync(self.channel_layer.group_send)(self.group_name, {
-            "type": "fetch.data.message",
+        async_to_sync(self.channel_layer.group_send)('scraping', {
+            "type": "fetch.messages",
             "text": message,
         })
 
     def youtube_search(self):
+        print('hey')
         self.send_to_websocket('connecting...')
+        print('hello')
         Video.objects.filter(
             video_href__in=self.settings['video_to_delete'] + self.settings[
                 'excepted_href'] + self.EXCEPT_VIDEO).delete()
@@ -129,10 +128,6 @@ class YoutubeScraping:
                 return
 
     def fill_in_db(self, response):
-        # video_model = apps.get_model(app_label='dictionary_console', model_name='Video')
-        # WordAppearance = apps.get_model(app_label='dictionary_console', model_name='WordAppearance')
-        # word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
-        # caption_model = apps.get_model(app_label='dictionary_console', model_name='Caption')
         video_data = dict()
         for search_result in response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
@@ -152,7 +147,9 @@ class YoutubeScraping:
 
             lang_codes = list()
             url = f'https://www.youtube.com/api/timedtext?type=list&v={href}'
-            req = requests.get(url)
+            req = requests.get(url, timeout=(connect_timeout, read_timeout))
+            if not req.ok:
+                raise ValueError(f'Unexpected status code: {req.status_code}')
             try:
                 root = ElementTree.fromstring(req.content)
             except ElementTree.ParseError:
@@ -203,9 +200,10 @@ class YoutubeScraping:
         return False
 
     def make_script(self, name: str, video_instance):
-        # caption_model = apps.get_model(app_label='dictionary_console', model_name='Caption')
         url = f"http://video.google.com/timedtext?lang=id&name={name}&v={video_instance.video_href}"
-        req = requests.get(url)
+        req = requests.get(url, timeout=(connect_timeout, read_timeout))
+        if not req.ok:
+            raise ValueError(f'Unexpected status code: {req.status_code}')
         root = ElementTree.fromstring(req.content)
 
         # 字幕つくる。構成単語も
@@ -300,14 +298,13 @@ class YoutubeScraping:
         return script, element
 
     def get_imi(self, w):
-        # WordAppearance = apps.get_model(app_label='dictionary_console', model_name='WordAppearance')
-        # word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
         meaning = self.get_meaning_from_db(w)
         if meaning:
             return meaning
-
         url = f'https://njjn.weblio.jp/content/{w}'
-        r = requests.get(url)
+        r = requests.get(url, timeout=(connect_timeout, read_timeout))
+        print(r.ok)
+        r.raise_for_status()
         soup = BeautifulSoup(r.text, 'lxml')
 
         try:
@@ -465,7 +462,6 @@ class YoutubeScraping:
 
         if meaning:
             meaning = meaning.strip()
-            # set word
             word_instance = Word(word=w, word_ini=word_ini, word_imi=meaning)
             word_instance.save()
             WordAppearance(word=word_instance).save()
@@ -473,7 +469,6 @@ class YoutubeScraping:
 
     @staticmethod
     def get_meaning_from_db(w):
-        # word_model = apps.get_model(app_label='dictionary_console', model_name='Word')
         try:
             doc = Word.objects.get(word=w)
         except Word.DoesNotExist:
@@ -515,7 +510,9 @@ class YoutubeScraping:
 
     def get_duration(self, href):
         url = f"https://www.googleapis.com/youtube/v3/videos?id={href}&key={self.Y_KEY}&part=contentDetails"
-        response = urllib.request.urlopen(url).read()
+        response = urllib.request.urlopen(url, timeout=connect_timeout).read()
+        if not response:
+            raise ValueError(f'Unexpected status code: {response.status_code}')
         data = json.loads(response)
         duration = data['items'][0]['contentDetails']['duration']
         dur = isodate.parse_duration(duration).total_seconds()

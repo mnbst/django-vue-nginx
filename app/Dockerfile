@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.8.0-slim-buster
+FROM python:3.8.2-slim-buster
 
 ENV HOME=/usr/src/app
 
@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
 RUN apt update \
-    && apt install gcc netcat -y \
+    && apt install gcc netcat -y libffi-dev\
     && apt -y clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,6 +33,3 @@ RUN chmod +x /usr/src/app/entrypoint.sh
 
 # run entrypoint.sh 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]       
-
-#EXPOSE 8000
-#CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]

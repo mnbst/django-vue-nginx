@@ -1,50 +1,47 @@
 import json
 
+from asgiref.sync import async_to_sync
 from celery.result import AsyncResult
-from channels.consumer import AsyncConsumer
 from channels.exceptions import StopConsumer
+from channels.generic.websocket import WebsocketConsumer
 
-from .tasks import scraping
+from .celery import scraping
 
 
-class FetchDataConsumer(AsyncConsumer):
+class FetchConsumer(WebsocketConsumer):
     result = AsyncResult
     group_name = 'scraping'
 
-    async def websocket_connect(self, event):
+    def websocket_connect(self, event):
         print("connected", event)
-        await self.channel_layer.group_add(
+        async_to_sync(self.channel_layer.group_add)(
             group=self.group_name,
             channel=self.channel_name
         )
-        await self.send({
-            "type": "websocket.accept"
-        })
+        self.accept()
 
-    async def websocket_receive(self, settings):
+    def websocket_receive(self, settings):
         print("receive", settings)
-        await self.send({
-            "type": "websocket.send",
-            'text': 'starting...'
-        })
+        self.send(text_data='starting...')
         settings = json.loads(settings['text'])
-        self.result = scraping.delay(
-            settings=settings,
-            group_name=self.group_name
-        )
-        raise StopConsumer()
-
-    async def websocket_disconnect(self, event):
-        print('disconnect', event)
-        self.result.revoke()
-        await self.channel_layer.group_discard(
-            group=self.group_name,
-            channel=self.channel_name
-        )
-        raise StopConsumer()
-
-    async def fetch_data_message(self, event):
-        await self.send({
-            "type": "websocket.send",
-            'text': event['text']
+        self.result = scraping.delay(settings=settings)
+        # scraping(settings=settings,
+        #          group_name=self.group_name)
+        self.result.revoke(terminate=True)
+        async_to_sync(self.channel_layer.group_send)(self.group_name, {
+            "type": "fetch.messages",
+            "message": 'message',
         })
+        async_to_sync(self.channel_layer.group_discard)(
+            self.group_name,
+            self.channel_name
+        )
+        raise StopConsumer()
+
+    def websocket_disconnect(self, event):
+        print('disconnect', event)
+        self.result.revoke(terminate=True)
+        raise StopConsumer()
+
+    def fetch_messages(self, event):
+        async_to_sync(self.send)(text_data=event["message"])
