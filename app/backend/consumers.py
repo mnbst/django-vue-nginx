@@ -5,43 +5,35 @@ from celery.result import AsyncResult
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import WebsocketConsumer
 
-from .celery import scraping
+from .tasks import scraping
 
 
 class FetchConsumer(WebsocketConsumer):
     result = AsyncResult
-    group_name = 'scraping'
+    group_name = "fetch"
 
-    def websocket_connect(self, event):
-        print("connected", event)
+    def connect(self):
+        print("connected")
         async_to_sync(self.channel_layer.group_add)(
             group=self.group_name,
             channel=self.channel_name
         )
         self.accept()
 
-    def websocket_receive(self, settings):
-        print("receive", settings)
-        self.send(text_data='starting...')
-        settings = json.loads(settings['text'])
-        self.result = scraping.delay(settings=settings)
-        # scraping(settings=settings,
-        #          group_name=self.group_name)
+    def disconnect(self, close_code):
+        print('disconnect', close_code)
         self.result.revoke(terminate=True)
-        async_to_sync(self.channel_layer.group_send)(self.group_name, {
-            "type": "fetch.messages",
-            "message": 'message',
-        })
         async_to_sync(self.channel_layer.group_discard)(
-            self.group_name,
-            self.channel_name
+            group=self.group_name,
+            channel=self.channel_name
         )
         raise StopConsumer()
 
-    def websocket_disconnect(self, event):
-        print('disconnect', event)
-        self.result.revoke(terminate=True)
-        raise StopConsumer()
+    def receive(self, text_data=None, bytes_data=None):
+        print("receive", text_data)
+        self.send(text_data='starting...')
+        settings = json.loads(text_data)
+        self.result = scraping.delay(settings=settings)
 
     def fetch_messages(self, event):
-        async_to_sync(self.send)(text_data=event["message"])
+        self.send(text_data=event["text"])

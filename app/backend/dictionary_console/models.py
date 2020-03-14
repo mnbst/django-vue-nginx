@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 from django.contrib.postgres.fields import ArrayField
-from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator
 from django.db import models
 
@@ -10,14 +9,6 @@ class Word(models.Model):
     word_ini = models.CharField(max_length=1)
     word = models.CharField(max_length=50, unique=True)
     word_imi = models.CharField(max_length=120, default='')
-
-    def __str__(self):
-        return self.word
-
-
-class WordAppearance(models.Model):
-    word = models.OneToOneField(Word, on_delete=models.CASCADE, unique=True)
-    appearance = JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.word
@@ -34,6 +25,15 @@ class Video(models.Model):
 
     def __str__(self):
         return self.video_href
+
+
+class WordAppearance(models.Model):
+    word = models.ForeignKey(Word, to_field='word', on_delete=models.CASCADE)
+    video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE)
+    appearance = ArrayField(models.PositiveIntegerField(default=0))
+
+    def __str__(self):
+        return self.word
 
 
 class Caption(models.Model):

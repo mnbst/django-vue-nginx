@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import json
 import os
 import re
+import time
 import urllib.request
 import xml.etree.ElementTree as ElementTree
 from html import unescape
@@ -12,10 +13,9 @@ import django
 import isodate
 import nltk
 import requests
-from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
+from celery import shared_task
 from channels.layers import get_channel_layer
-# from django.apps import apps
 from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
@@ -25,6 +25,12 @@ django.setup()
 from .dictionary_console.models import *
 
 connect_timeout, read_timeout = 5.0, 30.0
+
+
+@shared_task
+def scraping(settings: dict):
+    youtube_scraping = YoutubeScraping(settings=settings)
+    youtube_scraping.youtube_search()
 
 
 class MemoryCache(Cache):
@@ -70,15 +76,18 @@ class YoutubeScraping:
         self.channel_layer = get_channel_layer()
 
     def send_to_websocket(self, message: str):
-        async_to_sync(self.channel_layer.group_send)('scraping', {
-            "type": "fetch.messages",
-            "text": message,
-        })
+        # print(message)
+        # async_to_sync(self.channel_layer.group_send)(
+        #     'fetch',
+        #     {
+        #         "type": "fetch.messages",
+        #         "text": message,
+        #     },
+        # )
+        pass
 
     def youtube_search(self):
-        print('hey')
         self.send_to_websocket('connecting...')
-        print('hello')
         Video.objects.filter(
             video_href__in=self.settings['video_to_delete'] + self.settings[
                 'excepted_href'] + self.EXCEPT_VIDEO).delete()
@@ -136,7 +145,6 @@ class YoutubeScraping:
                     continue
             else:
                 continue
-
             try:
                 video_data = Video.objects.get(video_href=href)
             except Video.DoesNotExist:
@@ -182,12 +190,11 @@ class YoutubeScraping:
                 word_appearances = list()
                 for el in element:
                     try:
-                        db_data = WordAppearance.objects.filter(word=el)
+                        db_data = WordAppearance.objects.filter(word__word=el)
                         print(db_data['el'])
                     except WordAppearance.DoesNotExist:
                         print(f'{el} not in db')
-                    word_instance = Word.objects.filter(word=el)
-                    word_appearance = WordAppearance(word=word_instance,
+                    word_appearance = WordAppearance(word__word=el,
                                                      appearance=json.dumps({href: element[el]}))
                     word_appearances.append(word_appearance)
                 while True:
@@ -302,8 +309,8 @@ class YoutubeScraping:
         if meaning:
             return meaning
         url = f'https://njjn.weblio.jp/content/{w}'
+        time.sleep(1)
         r = requests.get(url, timeout=(connect_timeout, read_timeout))
-        print(r.ok)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, 'lxml')
 
@@ -464,7 +471,6 @@ class YoutubeScraping:
             meaning = meaning.strip()
             word_instance = Word(word=w, word_ini=word_ini, word_imi=meaning)
             word_instance.save()
-            WordAppearance(word=word_instance).save()
         return meaning
 
     @staticmethod
