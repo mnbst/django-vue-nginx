@@ -24,9 +24,9 @@ DEVELOPER_KEY is [api key](https://cloud.google.com/docs/authentication/api-keys
 ```
 docker-compose -f docker-compose.yml up -d --build
 ``` 
+CELERY tasks can be debug, if you use pycharm remote debug and set DEBUG_CELERY=True in app/backend/settings.py  
 
-
-http://localhost:8000/
+and connect http://localhost:8000/
 ### prod 
 ```
 docker-compose -f docker-compose.prod.yml up -d --build
