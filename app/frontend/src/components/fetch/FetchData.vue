@@ -2,7 +2,7 @@
     <div id="FetchData">
         <v-container>
             <v-col cols="12">
-                <h2>fetch data</h2>
+                <h2>scraping</h2>
                 <div class="dark_terminal">
                     <virtual-list :size="30" :remain="10" :start="items.length">
                         <ul

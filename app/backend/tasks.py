@@ -22,7 +22,7 @@ from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
-from . import settings
+from . import settings as settings_py
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
@@ -80,7 +80,7 @@ class YoutubeScraping:
         self.channel_layer = get_channel_layer()
 
     def send_to_websocket(self, message: str):
-        if settings.DEBUG_CELERY:
+        if settings_py.DEBUG_CELERY:
             print(message)
         else:
             async_to_sync(self.channel_layer.group_send)(
@@ -307,7 +307,7 @@ class YoutubeScraping:
             return meaning
         url = f'https://njjn.weblio.jp/content/{w}'
 
-        time.sleep(0.5) if settings.DEBUG_CELERY else time.sleep(0)
+        time.sleep(0.5) if not settings_py.DEBUG_CELERY else time.sleep(0)
         r = requests.get(url, timeout=(connect_timeout, read_timeout))
         r.raise_for_status()
         soup = BeautifulSoup(r.text, 'lxml')
@@ -316,7 +316,7 @@ class YoutubeScraping:
             elements_crosslink = soup.find_all(class_="crosslink")
             elements_igngj = soup.find_all(class_="Igngj")
             elements_midashigo = soup.find_all(class_='midashigo')
-            if elements_crosslink != [] or elements_igngj != []:
+            if elements_crosslink or elements_igngj:
                 if w == elements_midashigo[0].text.lower().strip():
                     meaning = self.format_text(elements_crosslink + elements_igngj)
         except HTTPError:
