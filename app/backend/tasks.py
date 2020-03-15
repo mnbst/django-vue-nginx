@@ -13,18 +13,22 @@ import django
 import isodate
 import nltk
 import requests
+from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
 from celery import shared_task
 from channels.layers import get_channel_layer
+from django.db import transaction
 from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
+
+from . import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
 from .dictionary_console.models import *
 
-connect_timeout, read_timeout = 5.0, 30.0
+connect_timeout, read_timeout = 3.0, 30.0
 
 
 @shared_task
@@ -76,15 +80,16 @@ class YoutubeScraping:
         self.channel_layer = get_channel_layer()
 
     def send_to_websocket(self, message: str):
-        # print(message)
-        # async_to_sync(self.channel_layer.group_send)(
-        #     'fetch',
-        #     {
-        #         "type": "fetch.messages",
-        #         "text": message,
-        #     },
-        # )
-        pass
+        if settings.DEBUG_CELERY:
+            print(message)
+        else:
+            async_to_sync(self.channel_layer.group_send)(
+                'fetch',
+                {
+                    "type": "fetch.messages",
+                    "text": message,
+                },
+            )
 
     def youtube_search(self):
         self.send_to_websocket('connecting...')
@@ -137,7 +142,7 @@ class YoutubeScraping:
                 return
 
     def fill_in_db(self, response):
-        video_data = dict()
+        video_data = []
         for search_result in response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
                 href = search_result["id"]["videoId"]
@@ -182,27 +187,18 @@ class YoutubeScraping:
                               video_upload_date=search_result["snippet"]["publishedAt"])
 
                 script, element = self.make_script(name, video_instance=video)
-                if script is None and element is None:
+                word_appearances = []
+                if script is None:
                     return True
                 elif len(script) < self.settings['minimum_sentence']:
                     self.send_to_websocket(f'"{title}" has short sentences')
                     continue
-                word_appearances = list()
                 for el in element:
-                    try:
-                        db_data = WordAppearance.objects.filter(word__word=el)
-                        print(db_data['el'])
-                    except WordAppearance.DoesNotExist:
-                        print(f'{el} not in db')
-                    word_appearance = WordAppearance(word__word=el,
-                                                     appearance=json.dumps({href: element[el]}))
-                    word_appearances.append(word_appearance)
-                while True:
-                    if not script and not element:
-                        break
-                    Caption.objects.bulk_create(script, batch_size=50)
-                    WordAppearance.objects.bulk_create(element, batch_size=50)
-                video.save()
+                    word_appearances.append(WordAppearance(word=el, video_href=video, appearance=element[el]))
+                with transaction.atomic():
+                    video.save()
+                    WordAppearance.objects.bulk_create(word_appearances)
+                    Caption.objects.bulk_create(script)
 
         return False
 
@@ -219,7 +215,6 @@ class YoutubeScraping:
         index = int()
 
         for r in root.iter():
-
             imi = list()
             try:
                 text = re.sub("\n", " ", r.text)
@@ -231,85 +226,88 @@ class YoutubeScraping:
                 text = r.text
 
             try:
-                row = nltk.tokenize.word_tokenize(text)
-                row = [re.sub(self.REGEX_EXCEPT_HYPHEN, '', item) for item in row]
-                word = [i for i in row if i and not i == '-']
+                raw_list = nltk.tokenize.word_tokenize(text)
+                raw_list = [re.sub(self.REGEX_EXCEPT_HYPHEN, '', item) for item in raw_list]
+                word = [i for i in raw_list if i and i != '-']
+                word = list(map(lambda x: x.lower(), word))
             except TypeError:
                 continue
 
             if not word:
                 continue
 
-            start = r.attrib.get('start')
-            try:
-                start_time = int(float(start) * 1000)
-            except TypeError:
-                start_time = 0
-
-            dur = r.attrib.get('dur')
-            try:
-                end_time = start_time + int(float(dur) * 1000)
-            except TypeError:
-                end_time = start_time
-
             # DBから意味を取得。なければinsert
             idiom_flag = False
             for j, w in enumerate(word):
-                if idiom_flag:
-                    word.remove(w)
-                    idiom_flag = False
-                    w = word[j]
-
-                if re.match(self.REGEX, w):
-                    word.remove(w)
-                    w = word[j]
-
                 meaning = str()
                 idiom = str()
-                w = w.lower()
+                if idiom_flag or re.match(self.REGEX_EXCEPT_HYPHEN, w):
+                    idiom_flag = False
+                    try:
+                        word.remove(w)
+                        w = word[j]
+                    except ValueError:
+                        print('Uuuuum')
+                    except IndexError:
+                        continue
+
                 if w.startswith('-') or w.endswith('-'):
                     w = re.sub('-', '', w)
 
                 if w != 'di' and j + 1 != len(word) and word[
                     j + 1] != 'ini' and w and word[j + 1] and word[
-                    j + 1] != '-' and not self.REGEX.match(w) \
-                        and not self.REGEX_EXCEPT_HYPHEN.match(word[j + 1]):
+                    j + 1] != '-' and not self.REGEX.match(word[j + 1]):
                     idiom = w + ' ' + word[j + 1]
                     idiom = idiom.lower()
                     meaning = self.get_imi(idiom)
-
-                if meaning and idiom_flag:
+                if meaning:
                     w = idiom
                     idiom_flag = True
-                elif not meaning:
+                else:
                     meaning = self.get_imi(w)
 
                 if meaning and w in element:
                     element[w].append(index)
-                elif meaning and w not in element:
+                else:
                     element[w] = [index]
-                    if idiom_flag:
-                        self.send_to_websocket('idiom found')
 
                 if word[j]:
                     imi.append(meaning)
                     word[j] = w
 
             word = [i for i in word if i]
+            start_time, end_time = self.get_start_end(r)
             sentence = Caption(video_href=video_instance, index=index, start_time=start_time,
                                end_time=end_time, text=text,
-                               word=word, word_imi=imi)
+                               words=word, meanings=imi)
             script.append(sentence)
             index = index + 1
 
         return script, element
+
+    @staticmethod
+    def get_start_end(r):
+        start = r.attrib.get('start')
+        try:
+            start_time = int(float(start) * 1000)
+        except TypeError:
+            start_time = 0
+
+        dur = r.attrib.get('dur')
+        try:
+            end_time = start_time + int(float(dur) * 1000)
+        except TypeError:
+            end_time = start_time
+
+        return start_time, end_time
 
     def get_imi(self, w):
         meaning = self.get_meaning_from_db(w)
         if meaning:
             return meaning
         url = f'https://njjn.weblio.jp/content/{w}'
-        time.sleep(1)
+
+        time.sleep(0.5) if settings.DEBUG_CELERY else time.sleep(0)
         r = requests.get(url, timeout=(connect_timeout, read_timeout))
         r.raise_for_status()
         soup = BeautifulSoup(r.text, 'lxml')
@@ -325,7 +323,7 @@ class YoutubeScraping:
             meaning = ""
         except URLError:
             meaning = ""
-
+        r.close()
         # 接頭語・接尾語とか。登録したくない奴はリターンする。
         if not meaning and '-' in w and ' ' not in w:
             w2 = w.split('-')[1]
@@ -469,7 +467,7 @@ class YoutubeScraping:
 
         if meaning:
             meaning = meaning.strip()
-            word_instance = Word(word=w, word_ini=word_ini, word_imi=meaning)
+            word_instance = Word(word=w, word_ini=word_ini, meaning=meaning)
             word_instance.save()
         return meaning
 
@@ -482,7 +480,7 @@ class YoutubeScraping:
             return meaning
 
         if doc:
-            meaning = doc.word_imi
+            meaning = doc.meaning
             return meaning
         else:
             meaning = ''

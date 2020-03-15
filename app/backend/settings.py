@@ -27,7 +27,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
-# True
+DEBUG_CELERY = 0
+
 ALLOWED_HOSTS = ['*']
 # os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
@@ -169,5 +170,5 @@ CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_IMPORTS = ('backend.tasks',)
 
-current_app.conf.CELERY_ALWAYS_EAGER = True
-current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+current_app.conf.CELERY_ALWAYS_EAGER = True if DEBUG_CELERY else False
+current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True if DEBUG_CELERY else False
