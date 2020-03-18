@@ -1,0 +1,13 @@
+{
+  "model": "dictionary_console.fetchsetting",
+  "fields": {
+    "authority": "super",
+    "excepted_href": {},
+    "page_to_crawl": 1,
+    "language_limit": 1,
+    "minimum_sentence": 1,
+    "video_per_page": 1,
+    "video_to_delete": {},
+    "video_to_renewal": {}
+  }
+}

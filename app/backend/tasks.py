@@ -7,7 +7,6 @@ import time
 import urllib.request
 import xml.etree.ElementTree as ElementTree
 from html import unescape
-from urllib.error import HTTPError, URLError
 
 import django
 import isodate
@@ -17,7 +16,7 @@ from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
 from celery import shared_task
 from channels.layers import get_channel_layer
-from django.db import transaction
+from django.db import transaction, Error
 from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
@@ -74,6 +73,7 @@ class YoutubeScraping:
     REGEX = re.compile(r"[!-/:-@[-`{-㿿]")
     # アルファベット
     REGEX_ALPHABET = re.compile(r'[a-zA-Z\s]')
+    REGEX_SPACE = re.compile(r'([-a-z0-9]+)\s([-a-z0-9]+)')
 
     def __init__(self, settings: dict):
         self.settings = settings
@@ -120,9 +120,7 @@ class YoutubeScraping:
             return
 
         page_token = search_response.get("nextPageToken", str)
-        flag_disconnect = self.fill_in_db(response=search_response)
-        if flag_disconnect:
-            return
+        self.fill_in_db(response=search_response)
 
         for _ in range(0, self.settings['page_to_crawl'] - 1):
             search_response.update(youtube.search().list(
@@ -137,9 +135,8 @@ class YoutubeScraping:
                 videoCaption="closedCaption",
                 videoSyndicated="true").execute())
             page_token = search_response.get("nextPageToken", str)
-            flag_disconnect = self.fill_in_db(response=search_response)
-            if flag_disconnect:
-                return
+            self.fill_in_db(response=search_response)
+        self.send_to_websocket(settings_py.END_MESSAGE)
 
     def fill_in_db(self, response):
         video_data = []
@@ -196,11 +193,12 @@ class YoutubeScraping:
                 for el in element:
                     word_appearances.append(WordAppearance(word=el, video_href=video, appearance=element[el]))
                 with transaction.atomic():
-                    video.save()
-                    WordAppearance.objects.bulk_create(word_appearances)
-                    Caption.objects.bulk_create(script)
-
-        return False
+                    try:
+                        video.save()
+                        WordAppearance.objects.bulk_create(word_appearances)
+                        Caption.objects.bulk_create(script)
+                    except Error as e:
+                        self.send_to_websocket(str(e))
 
     def make_script(self, name: str, video_instance):
         url = f"http://video.google.com/timedtext?lang=id&name={name}&v={video_instance.video_href}"
@@ -246,8 +244,6 @@ class YoutubeScraping:
                     try:
                         word.remove(w)
                         w = word[j]
-                    except ValueError:
-                        print('Uuuuum')
                     except IndexError:
                         continue
 
@@ -301,162 +297,160 @@ class YoutubeScraping:
 
         return start_time, end_time
 
-    def get_imi(self, w):
-        meaning = self.get_meaning_from_db(w)
-        if meaning:
-            return meaning
+    def get_imi(self, w, recursion: bool = False):
+        meaning = str()
+        word = self.get_word_from_db(w)
+        if word:
+            return word.meaning
         url = f'https://njjn.weblio.jp/content/{w}'
 
-        time.sleep(0.5) if not settings_py.DEBUG_CELERY else time.sleep(0)
+        time.sleep(0.3) if not settings_py.DEBUG_CELERY else time.sleep(0)
         r = requests.get(url, timeout=(connect_timeout, read_timeout))
         r.raise_for_status()
         soup = BeautifulSoup(r.text, 'lxml')
 
-        try:
-            elements_crosslink = soup.find_all(class_="crosslink")
-            elements_igngj = soup.find_all(class_="Igngj")
-            elements_midashigo = soup.find_all(class_='midashigo')
-            if elements_crosslink or elements_igngj:
-                if w == elements_midashigo[0].text.lower().strip():
+        elements_crosslink = soup.find_all(class_="crosslink")
+        elements_igngj = soup.find_all(class_="Igngj")
+        elements_midashigo = soup.find_all(class_='midashigo')
+        if elements_crosslink or elements_igngj:
+            for element in elements_midashigo:
+                if w == element.text.lower().strip():
                     meaning = self.format_text(elements_crosslink + elements_igngj)
-        except HTTPError:
-            meaning = ""
-        except URLError:
-            meaning = ""
+                    break
         r.close()
         # 接頭語・接尾語とか。登録したくない奴はリターンする。
         if not meaning and '-' in w and ' ' not in w:
             w2 = w.split('-')[1]
             w1 = w.split('-')[0]
             if w2 and w1 in w2:
-                meaning = self.get_imi(w2)
+                meaning = self.get_imi(w2, recursion=True)
             if meaning:
                 meaning = meaning + " (\"-\"=複数/動作の繰り返し)"
                 return meaning
         elif not meaning and w.endswith('nya'):
             w1 = w[:len(w) - 3]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+nya=特定の事柄・人を表す接尾辞)"
                 return meaning
         elif not meaning and w.endswith('kah'):
             w1 = w[:len(w) - 3]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+kah=～ですか？)"
                 return meaning
         elif not meaning and w.endswith('an') and not w.endswith('kan'):
             w1 = w[:len(w) - 2]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+an=単位/内容を特定する接尾辞)"
                 return meaning
         elif not meaning and w.endswith('in') and '-' not in w:
             w1 = w[:len(w) - 2]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+in=ジャカルタ方言・他動詞の語幹をつくる接尾辞)"
                 return meaning
         elif not meaning and w.endswith('i'):
             w1 = w[:len(w) - 1]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+i=前置詞を代替する接尾辞/動作の反復・集中)"
                 return meaning
         elif not meaning and w.endswith('kan'):
             w1 = w[:len(w) - 3]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+kan=他動詞の語幹をつくる接尾辞)"
                 return meaning
         elif not meaning and w.startswith('mu'):
             w1 = w[2:]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning and '=' not in meaning:
                 meaning = meaning + " (+mu=君)"
                 return meaning
         elif not meaning and w.startswith('ku'):
             w1 = w[2:]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning and '=' not in meaning:
                 meaning = meaning + " (+ku=僕)"
                 return meaning
         elif not meaning and w.endswith('lah'):
             w1 = w[:len(w) - 3]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+lah=強調)"
                 return meaning
         elif not meaning and w.endswith('pun'):
             w1 = w[:len(w) - 3]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+pun=～でさえ/～でも)"
                 return meaning
         elif not meaning and w.endswith('mu'):
             w1 = w[:len(w) - 2]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+mu=君)"
                 return meaning
         elif not meaning and w.endswith('ku'):
             w1 = w[:len(w) - 2]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+ku=僕)"
                 return meaning
 
         if not meaning and w.startswith('di'):
             w1 = w[2:]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
 
             if meaning == '':
                 if w1.startswith(('l', 'r', 'm', 'n', 'w', 'y')):
                     w2 = 'me' + w1
-                    meaning = self.get_imi(w2)
+                    meaning = self.get_imi(w2, recursion=True)
                 elif w1.startswith('t'):
                     w2 = 'men' + w1[1:]
-                    meaning = self.get_imi(w2)
+                    meaning = self.get_imi(w2, recursion=True)
                 elif w1.startswith('p'):
                     w2 = 'mem' + w1[1:]
-                    meaning = self.get_imi(w2)
+                    meaning = self.get_imi(w2, recursion=True)
                 elif w1.startswith(('c', 'j', 'z', 'sy', 'd')):
                     w2 = 'men' + w1
-                    meaning = self.get_imi(w2)
+                    meaning = self.get_imi(w2, recursion=True)
                 elif w1.startswith('b'):
                     w2 = 'mem' + w1
-                    meaning = self.get_imi(w2)
+                    meaning = self.get_imi(w2, recursion=True)
                 elif w1.startswith('s'):
                     w2 = 'meny' + w1[1:]
-                    meaning = self.get_imi(w2)
+                    meaning = self.get_imi(w2, recursion=True)
                 else:
                     w2 = 'meng' + w1
-                    meaning = self.get_imi(w2)
+                    meaning = self.get_imi(w2, recursion=True)
 
             if meaning:
                 meaning = meaning + " (+di=受け身を表す接頭辞/～で、～に)"
                 return meaning
         elif not meaning and w.startswith('ber'):
             w1 = w[3:]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+ber=～を持っている／身につけている／伴っている)"
                 return meaning
         elif not meaning and w.startswith('ter'):
             w1 = w[3:]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+ter=最も～/～してしまう，～してしまっている)"
                 return meaning
         elif not meaning and w.startswith('se'):
             w1 = w[2:]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+se=1つの/1回の/同じ/全体)"
                 return meaning
         elif not meaning and w.startswith('ke') and w.endswith('an'):
             w1 = w[2:len(w) - 2]
-            meaning = self.get_imi(w1)
+            meaning = self.get_imi(w1, recursion=True)
             if meaning:
                 meaning = meaning + " (+ke~an=ke--an派生語を作る共接辞)"
                 return meaning
@@ -465,26 +459,21 @@ class YoutubeScraping:
             w = re.sub('-', '', w)
         word_ini = w[0:1]
 
-        if meaning:
+        if re.match(self.REGEX_SPACE, w) and not meaning:
+            return meaning
+        elif not recursion:
             meaning = meaning.strip()
             word_instance = Word(word=w, word_ini=word_ini, meaning=meaning)
             word_instance.save()
         return meaning
 
     @staticmethod
-    def get_meaning_from_db(w):
+    def get_word_from_db(w):
         try:
-            doc = Word.objects.get(word=w)
+            word = Word.objects.get(word=w)
         except Word.DoesNotExist:
-            meaning = ""
-            return meaning
-
-        if doc:
-            meaning = doc.meaning
-            return meaning
-        else:
-            meaning = ''
-        return meaning
+            word = None
+        return word
 
     def format_text(self, elements):
         contents = list()
@@ -521,4 +510,4 @@ class YoutubeScraping:
         duration = data['items'][0]['contentDetails']['duration']
         dur = isodate.parse_duration(duration).total_seconds()
         dur = int(dur)
-        return '{:2}:{:02}'.format(dur // 60, dur % 60)
+        return '{0:1}:{1:2}'.format(dur // 60, dur % 60)

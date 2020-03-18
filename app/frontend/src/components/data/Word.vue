@@ -41,8 +41,8 @@
                                                                               v-model="Word.word"></v-text-field>
                                                             </v-col>
                                                             <v-col cols="12">
-                                                                <v-text-field label="word_imi*" required
-                                                                              v-model="Word.word_imi"></v-text-field>
+                                                                <v-text-field label="meaning*" required
+                                                                              v-model="Word.meaning"></v-text-field>
                                                             </v-col>
                                                         </v-row>
                                                     </v-container>
@@ -76,8 +76,8 @@
                                         <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.word"></v-text-field>
                                     </v-col>
                                     <v-col cols="12" sm="12">
-                                        <h3>word_imi</h3>
-                                        <v-textarea class="my-n2 mb-n7 pa-0" v-model="item.word_imi"></v-textarea>
+                                        <h3>meaning</h3>
+                                        <v-textarea class="my-n2 mb-n7 pa-0" v-model="item.meaning"></v-textarea>
                                     </v-col>
                                     <v-row>
                                         <v-btn class="ma-4 primary" @click="modify(item)">修正</v-btn>
@@ -123,7 +123,7 @@
             Word: {
                 word_ini: "",
                 word: "",
-                word_imi: ""
+                meaning: ""
             }
         }),
         components: {
@@ -143,7 +143,7 @@
                 this.Word = {
                     word_ini: "",
                     word: "",
-                    word_imi: ""
+                    meaning: ""
                 };
                 this.dialog = true;
             },
@@ -152,13 +152,8 @@
                 this.confirmationDialog = true;
             },
             add: function () {
-                let newWord = {
-                    word_ini: this.Word.word_ini,
-                    word: this.Word.word,
-                    word_imi: this.Word.word_imi
-                };
                 axios
-                    .post("/api/words/", newWord)
+                    .post("/api/words/", this.Word)
                     .then(response => {
                         this.$store.dispatch("loadWords");
                         console.log(response);

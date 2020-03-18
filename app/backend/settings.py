@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import ssl
 
 from celery import current_app
 
@@ -28,6 +29,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
 DEBUG_CELERY = 0
+
+END_MESSAGE = 'all done😀'
 
 ALLOWED_HOSTS = ['*']
 # os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
@@ -157,6 +160,8 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [("redis", 6379)],
+            'capacity': 1500,
+            'expiry': 10,
         },
     },
 }
@@ -169,6 +174,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_IMPORTS = ('backend.tasks',)
+BROKER_USE_SSL = {'ssl_cert_reqs': ssl.CERT_REQUIRED}
 
 current_app.conf.CELERY_ALWAYS_EAGER = True if DEBUG_CELERY else False
 current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True if DEBUG_CELERY else False

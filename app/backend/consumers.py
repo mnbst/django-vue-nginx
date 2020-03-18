@@ -5,6 +5,7 @@ from celery.result import AsyncResult
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import WebsocketConsumer
 
+from .settings import END_MESSAGE
 from .tasks import scraping
 
 
@@ -36,4 +37,7 @@ class FetchConsumer(WebsocketConsumer):
         self.result = scraping.delay(settings=settings)
 
     def fetch_messages(self, event):
-        self.send(text_data=event["text"])
+        text = event["text"]
+        self.send(text_data=text)
+        if text == END_MESSAGE:
+            self.send(close=True)

@@ -5,7 +5,7 @@ from .models import *
 class WordSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Word
-        fields = ('id', 'url', 'word_ini', 'word', 'word_imi')
+        fields = ('id', 'url', 'word_ini', 'word', 'meaning')
 
 
 class WordAppearanceSerializer(serializers.HyperlinkedModelSerializer):

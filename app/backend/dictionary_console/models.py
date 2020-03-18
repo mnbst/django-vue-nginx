@@ -31,7 +31,7 @@ class Caption(models.Model):
     index = models.PositiveIntegerField(default=0)
     start_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
     end_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
-    text = models.CharField(max_length=100)
+    text = models.CharField(max_length=500)
     words = ArrayField(models.CharField(max_length=20, null=True, blank=True))
     meanings = ArrayField(
         models.CharField(max_length=20, null=True, blank=True))
@@ -56,7 +56,8 @@ class WordAppearance(models.Model):
 
 
 class FetchSetting(models.Model):
-    authority = models.CharField(max_length=30, default="super", unique=True)
+    authority = models.CharField(max_length=30, default="super",
+                                 blank=True, unique=True)
     excepted_href = ArrayField(models.CharField(max_length=20),
                                default=list,
                                null=True,

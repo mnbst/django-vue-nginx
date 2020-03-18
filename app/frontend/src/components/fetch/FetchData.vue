@@ -4,12 +4,12 @@
             <v-col cols="12">
                 <h2>scraping</h2>
                 <div class="dark_terminal">
-                    <virtual-list :size="30" :remain="10" :start="items.length">
+                    <virtual-list :size="20" :remain="15" :start="items.length">
                         <ul
                                 class="white--text font-weight-black"
                                 v-for="item in items"
                                 :key="item.id"
-                        >-> {{item}}
+                        >-> {{item.text}}
                         </ul>
                     </virtual-list>
                 </div>
@@ -22,7 +22,7 @@
                                 <v-toolbar-title class="headline font-weight-bold">setting</v-toolbar-title>
                                 <v-spacer></v-spacer>
                                 <v-card-actions>
-                                    <v-btn v-if="activate===false" class="primary" v-on:click="modify(fetch_setting)">
+                                    <v-btn class="primary" v-on:click="modify(fetch_setting)">
                                         設定を保存
                                     </v-btn>
                                     <v-btn
@@ -199,17 +199,27 @@
 
     Vue.use(VueNumberInput);
     const re = /[a-zA-Z\s]/;
-    const promise = (settings) => new Promise((resolve) => {
-        Object.keys(settings).forEach(function (prop) {
-            if (typeof settings[prop] === "object") {
-                try {
-                    settings[prop] = settings[prop].filter(item => item.match(re));
-                } catch (_) {
-                    return null;
+    const promise = (setting) => new Promise((resolve) => {
+        if (setting.authority != '') {
+            Object.keys(setting).forEach(function (prop) {
+                if (typeof setting[prop] === "object") {
+                    try {
+                        setting[prop] = setting[prop].filter(item => item.match(re));
+                    } catch (_) {
+                        return null;
+                    }
                 }
-            }
-        });
-        resolve(settings);
+            });
+            axios.patch(setting.url, setting).then((response) => {
+                resolve(response)
+            })
+        } else {
+            setting.authority = 'super';
+            axios
+                .post("/api/fetch_setting/", setting).then((response) => {
+                resolve(response)
+            })
+        }
     });
     const loc = window.location;
     let wsStart = "ws://";
@@ -222,7 +232,7 @@
     export default {
         name: "FetchData",
         data: () => ({
-            items: ["HELLO"],
+            items: [{id: 0, text: "HELLO"}],
             activate: false,
         }),
         components: {
@@ -242,24 +252,25 @@
                 form.splice(-1, 1);
             },
             modify(setting) {
-                promise(setting).then((setting) => {
-                    axios
-                        .patch(setting.url, setting)
-                        .then(response => {
-                            console.log(response);
-                            this.$data.items.push('settings saved ✅')
-                        })
-                        .catch(e => {
-                            console.log(e);
-                            this.$data.items.push('ERROR while saving')
-                        });
-                });
+                let items = this.$data.items;
+                promise(setting)
+                    .then(response => {
+                        console.log(response);
+                        this.$store.dispatch("loadFetchSetting");
+                        items.push({id: items.length, text: 'settings saved ✅'})
+                    })
+                    .catch(e => {
+                        console.log(e);
+                        setting.authority = ''
+                        items.push({id: items.length, text: 'ERROR while saving'})
+                    });
             },
             fetch(setting) {
+                let items = this.items;
                 let _this = this;
                 socket = new WebSocket(endpoint);
                 socket.onmessage = function (e) {
-                    _this.$data.items.push(e.data);
+                    items.push({id: items.length, text: e.data});
                 };
                 socket.onopen = function () {
                     _this.$data.activate = true;
@@ -269,14 +280,14 @@
                     _this.$data.activate = false;
                 };
                 socket.onclose = function () {
-                    _this.$data.items.push('connection closed 👋');
+                    items.push({id: items.length, text: 'connection closed 👋'});
                     _this.$data.activate = false;
                 };
             },
             stop_fetch() {
-                let _this = this;
+                let items = this.items;
                 if (socket && socket.readyState === 1) {
-                    _this.$data.items.push('closing...');
+                    items.push({id: items.length, text: 'closing...'});
                     socket.close()
                 }
             },

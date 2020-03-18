@@ -2,7 +2,7 @@ import Vue from 'vue'
 import vuex from 'vuex'
 import axios from 'axios';
 
-Vue.use(vuex, axios)
+Vue.use(vuex, axios);
 
 function dynamicSort(property) {
     let sortOrder = 1;
@@ -31,8 +31,8 @@ export default new vuex.Store({
                       commit
                   }) {
             axios.get('/api/words').then(data => {
-                let words = data.data
-                words.sort(dynamicSort('word'))
+                let words = data.data;
+                words.sort(dynamicSort('word'));
                 commit('SET_WORDS', words)
             }).catch(e => {
                 console.log(e);
@@ -42,7 +42,7 @@ export default new vuex.Store({
                        commit
                    }) {
             axios.get('/api/videos').then(data => {
-                let videos = data.data
+                let videos = data.data;
                 for (let k in videos) {
                     videos[k].video_upload_date = new Date(videos[k].video_upload_date)
                 }
@@ -55,7 +55,19 @@ export default new vuex.Store({
                              commit
                          }) {
             axios.get('/api/fetch_setting').then(data => {
-                let fetch_setting = data.data[0]
+                let fetch_setting = data.data[0];
+                if (fetch_setting==null) {
+                    fetch_setting = {
+                        authority: "",
+                        excepted_href: [],
+                        page_to_crawl: 1,
+                        language_limit: 1,
+                        minimum_sentence: 10,
+                        video_per_page: 1,
+                        video_to_delete: [],
+                        video_to_renewal: []
+                    }
+                }
                 commit('SET_FETCH_SETTING', fetch_setting)
             }).catch(e => {
                 console.log(e);
@@ -65,7 +77,7 @@ export default new vuex.Store({
                          commit
                      }) {
             axios.get('/api/captions').then(data => {
-                let captions = data.data
+                let captions = data.data;
                 commit('SET_CAPTIONS', captions)
             }).catch(e => {
                 console.log(e)
