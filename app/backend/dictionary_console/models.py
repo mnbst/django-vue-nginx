@@ -8,7 +8,7 @@ from django.db import models
 class Word(models.Model):
     word_ini = models.CharField(max_length=1)
     word = models.CharField(max_length=50, unique=True)
-    meaning = models.CharField(max_length=120, default='')
+    meaning = models.CharField(max_length=200, default='')
 
     def __str__(self):
         return self.word
@@ -34,7 +34,7 @@ class Caption(models.Model):
     text = models.CharField(max_length=500)
     words = ArrayField(models.CharField(max_length=20, null=True, blank=True))
     meanings = ArrayField(
-        models.CharField(max_length=20, null=True, blank=True))
+        models.CharField(max_length=200, null=True, blank=True))
     video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE)
 
     def __str__(self):

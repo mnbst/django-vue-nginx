@@ -74,10 +74,10 @@
                               <v-col cols="12">
                                 <v-row>
                                   <v-col cols="2">
-                                    <v-text-field label="word*" required v-model="Caption.word[0]"></v-text-field>
+                                    <v-text-field label="word*" required v-model="Caption.words[0]"></v-text-field>
                                   </v-col>
                                   <v-col cols="2" v-for="(input, index) in form1" :key="index">
-                                    <v-text-field label="word" v-model="Caption.word[index +1]"></v-text-field>
+                                    <v-text-field label="word" v-model="Caption.words[index +1]"></v-text-field>
                                   </v-col>
                                   <v-btn
                                     icon
@@ -104,13 +104,13 @@
                                     <v-text-field
                                       label="word_imi*"
                                       required
-                                      v-model="Caption.word_imi[0]"
+                                      v-model="Caption.meanings[0]"
                                     ></v-text-field>
                                   </v-col>
                                   <v-col cols="2" v-for="(input, index) in form2" :key="index">
                                     <v-text-field
                                       label="word_imi"
-                                      v-model="Caption.word_imi[index +1]"
+                                      v-model="Caption.meanings[index +1]"
                                     ></v-text-field>
                                   </v-col>
                                   <v-btn
@@ -198,35 +198,35 @@
                   <v-layout row wrap>
                     <v-col cols="6">
                       <h4>word</h4>
-                      <v-flex v-for="(_,word_index) in item.word" :key="word_index">
-                        <v-text-field class="my-n2 mb-n7 pa-3" v-model="item.word[word_index]"></v-text-field>
+                      <v-flex v-for="(_,word_index) in item.words" :key="word_index">
+                        <v-text-field class="my-n2 mb-n7 pa-3" v-model="item.words[word_index]"></v-text-field>
                       </v-flex>
-                      <v-btn icon bottom color="grey lighten-1" v-on:click="add_form(item.word)">
+                      <v-btn icon bottom color="grey lighten-1" v-on:click="add_form(item.words)">
                         <v-icon dark>add_circle</v-icon>
                       </v-btn>
                       <v-btn
                         icon
                         bottom
                         color="grey lighten-1"
-                        v-on:click="remove_form(item.word)"
-                        v-if="item.word.length>1"
+                        v-on:click="remove_form(item.words)"
+                        v-if="item.words.length>1"
                       >
                         <v-icon dark>remove_circle</v-icon>
                       </v-btn>
                     </v-col>
                     <v-col cols="6">
                       <h4>word_imi</h4>
-                      <v-flex v-for="(_,word_imi_index) in item.word_imi" :key="word_imi_index">
+                      <v-flex v-for="(_,word_imi_index) in item.meanings" :key="word_imi_index">
                         <v-text-field
                           class="my-n2 mb-n7 pa-3"
-                          v-model="item.word_imi[word_imi_index]"
+                          v-model="item.meanings[word_imi_index]"
                         ></v-text-field>
                       </v-flex>
                       <v-btn
                         icon
                         bottom
                         color="grey lighten-1"
-                        v-on:click="add_form(item.word_imi)"
+                        v-on:click="add_form(item.meanings)"
                       >
                         <v-icon dark>add_circle</v-icon>
                       </v-btn>
@@ -234,8 +234,8 @@
                         icon
                         bottom
                         color="grey lighten-1"
-                        v-on:click="remove_form(item.word_imi)"
-                        v-if="item.word_imi.length>0"
+                        v-on:click="remove_form(item.meanings)"
+                        v-if="item.meanings.length>0"
                       >
                         <v-icon dark>remove_circle</v-icon>
                       </v-btn>
@@ -297,8 +297,8 @@ export default {
       start_time: "",
       end_time: "",
       text: "",
-      word: [],
-      word_imi: []
+      words: [],
+      meanings: []
     },
     form1: [],
     form2: []

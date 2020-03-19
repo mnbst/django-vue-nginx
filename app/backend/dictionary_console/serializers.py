@@ -18,7 +18,7 @@ class CaptionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Caption
         fields = ('id', 'url', 'video_href', 'index', 'start_time', 'end_time',
-                  'text', 'word', 'word_imi')
+                  'text', 'words', 'meanings')
 
 
 class VideoSerializer(serializers.HyperlinkedModelSerializer):

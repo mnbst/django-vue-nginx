@@ -1,5 +1,8 @@
 # docker+django+vue+nginx
 
+## CONCEPT
+Sending message from Celery task to Channels   
+
 ## Getting Started
 you need env/.env.dev or env/.env.prod file.  
 example below
