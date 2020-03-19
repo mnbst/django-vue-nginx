@@ -85,9 +85,9 @@ class YoutubeScraping:
             print(message)
         else:
             async_to_sync(self.channel_layer.group_send)(
-                'fetch',
+                'scraping',
                 {
-                    "type": "fetch.messages",
+                    "type": "scraping.messages",
                     "text": message,
                 },
             )
