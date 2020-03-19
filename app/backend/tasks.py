@@ -74,6 +74,7 @@ class YoutubeScraping:
     # アルファベット
     REGEX_ALPHABET = re.compile(r'[a-zA-Z\s]')
     REGEX_SPACE = re.compile(r'([-a-z0-9]+)\s([-a-z0-9]+)')
+    REGEX_NUMBER = re.compile(r'[0-9０-９]+')
 
     def __init__(self, settings: dict):
         self.settings = settings
@@ -461,7 +462,7 @@ class YoutubeScraping:
 
         if re.match(self.REGEX_SPACE, w) and not meaning:
             return meaning
-        elif not recursion:
+        elif not recursion and not re.match(self.REGEX_NUMBER, w):
             meaning = meaning.strip()
             word_instance = Word(word=w, word_ini=word_ini, meaning=meaning)
             word_instance.save()
