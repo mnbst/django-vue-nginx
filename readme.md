@@ -20,7 +20,7 @@ SQL_PORT=5432
 DATABASE=postgres
 DEVELOPER_KEY=change me
 ```
-DEVELOPER_KEY is [api key](https://cloud.google.com/docs/authentication/api-keys)
+DEVELOPER_KEY is [api key](https://developers.google.com/youtube/v3/getting-started)
 
 ### dev 
 
