@@ -5,7 +5,7 @@ const pages = {
         entry: './src/main.js',
         chunks: ['chunk-vendors']
     }
-}
+};
 
 module.exports = {
     pages: pages,
@@ -33,7 +33,7 @@ module.exports = {
             config.plugins.delete(`html-${page}`);
             config.plugins.delete(`preload-${page}`);
             config.plugins.delete(`prefetch-${page}`);
-        })
+        });
 
         config
             .plugin('BundleTracker')
@@ -42,7 +42,7 @@ module.exports = {
             }]);
 
         config.resolve.alias
-            .set('__STATIC__', 'static')
+            .set('__STATIC__', 'static');
 
         config.devServer
             .public('http://localhost:8080')

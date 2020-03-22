@@ -42,7 +42,7 @@ class Caption(models.Model):
 
 
 class WordAppearance(models.Model):
-    word = models.CharField(max_length=50)
+    word = models.ForeignKey(Word, to_field='word', on_delete=models.CASCADE)
     video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE)
     appearance = ArrayField(models.IntegerField(default=0))
 

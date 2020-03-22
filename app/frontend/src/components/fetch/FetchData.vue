@@ -198,9 +198,10 @@
     import virtualList from "vue-virtual-scroll-list";
 
     Vue.use(VueNumberInput);
+
     const re = /[a-zA-Z\s]/;
     const promise = (setting) => new Promise((resolve) => {
-        if (setting.authority != '') {
+        if (setting.authority) {
             Object.keys(setting).forEach(function (prop) {
                 if (typeof setting[prop] === "object") {
                     try {
@@ -261,7 +262,7 @@
                     })
                     .catch(e => {
                         console.log(e);
-                        setting.authority = ''
+                        setting.authority = '';
                         items.push({id: items.length, text: 'ERROR while saving'})
                     });
             },

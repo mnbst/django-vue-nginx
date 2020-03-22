@@ -1,16 +1,18 @@
-from django.conf.urls import url
-from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
-from .consumers import FetchConsumer
+from django.conf.urls import url
+
+from . import settings
+from .consumers import FetchConsumer, DebugFetchConsumer
 
 application = ProtocolTypeRouter({
-    # Empty for now (http->django views is added by default)
     'websocket': AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
                 [
-                    url(r"^(?P<realtime>[\w.@+-]+)", FetchConsumer)
+                    url(r"^(?P<realtime>[\w.@+-]+)", DebugFetchConsumer) if settings.DEBUG_CELERY else url(
+                        r"^(?P<realtime>[\w.@+-]+)", FetchConsumer)
                 ]
             )
         )
