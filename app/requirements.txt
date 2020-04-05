@@ -6,8 +6,6 @@ certifi==2019.11.28
 chardet==3.0.4
 Django
 django-webpack-loader
-djangorestframework
-djangorestframework-jwt==1.11.0
 gunicorn
 httplib2==0.17.0
 idna
@@ -37,5 +35,6 @@ channels_redis
 # ptvsd==4.3.2
 google-api-python-client==1.8.0
 lxml==4.5.0
-celery==4.4.1
+celery
 redis==3.4.1
+graphene-django

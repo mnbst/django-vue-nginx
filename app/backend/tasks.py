@@ -140,7 +140,6 @@ class YoutubeScraping:
         self.__send_to_websocket(settings_py.END_MESSAGE)
 
     def __fill_in_db(self, response):
-        video_data = []
         for search_result in response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
                 href = search_result["id"]["videoId"]
@@ -148,12 +147,11 @@ class YoutubeScraping:
                     continue
             else:
                 continue
-            try:
-                video_data = Video.objects.get(video_href=href)
-            except Video.DoesNotExist:
+            video_exists = Video.objects.filter(video_href=href).exists()
+            if not video_exists:
                 self.__send_to_websocket(f'getting video id: {href}')
 
-            if video_data and href not in self.settings['video_to_renewal']:
+            if video_exists and href not in self.settings['video_to_renewal']:
                 continue
 
             lang_codes = list()
@@ -192,7 +190,9 @@ class YoutubeScraping:
                     self.__send_to_websocket(f'"{title}" has short sentences')
                     continue
                 for el in element:
-                    word_appearances.append(WordAppearance(word=el, video_href=video, appearance=element[el]))
+                    word_instance = Word.objects.get(word=el)
+                    word_appearances.append(
+                        WordAppearance(word=word_instance, video_href=video, appearance=element[el]))
                 with transaction.atomic():
                     try:
                         video.save()
@@ -227,8 +227,7 @@ class YoutubeScraping:
             try:
                 raw_list = nltk.tokenize.word_tokenize(text)
                 raw_list = [re.sub(self.REGEX_EXCEPT_HYPHEN, '', item) for item in raw_list]
-                word = [i for i in raw_list if i and i != '-']
-                word = list(map(lambda x: x.lower(), word))
+                word = [i.lower() for i in raw_list if i and i != '-']
             except TypeError:
                 continue
 
@@ -251,11 +250,8 @@ class YoutubeScraping:
                 if w.startswith('-') or w.endswith('-'):
                     w = re.sub('-', '', w)
 
-                if w != 'di' and j + 1 != len(word) and word[
-                    j + 1] != 'ini' and w and word[j + 1] and word[
-                    j + 1] != '-' and not self.REGEX.match(word[j + 1]):
-                    idiom = w + ' ' + word[j + 1]
-                    idiom = idiom.lower()
+                if w != 'di' and j + 1 != len(word) and word[j + 1] not in ['ini', '-']:
+                    idiom = ' '.join([w, word[j + 1]])
                     meaning = self.__get_imi(idiom)
                 if meaning:
                     w = idiom
@@ -305,7 +301,7 @@ class YoutubeScraping:
             return word.meaning
         url = f'https://njjn.weblio.jp/content/{w}'
 
-        time.sleep(0.5) if not settings_py.DEBUG_CELERY else time.sleep(0)
+        time.sleep(0.3) if not settings_py.DEBUG_CELERY else time.sleep(0)
         r = requests.get(url, timeout=(connect_timeout, read_timeout))
         r.raise_for_status()
         soup = BeautifulSoup(r.text, 'lxml')

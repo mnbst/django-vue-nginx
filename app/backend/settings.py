@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
-DEBUG_CELERY = False
+DEBUG_CELERY = 1
 
 END_MESSAGE = 'all done😀'
 
@@ -48,8 +48,9 @@ INSTALLED_APPS = [
     # additional
     'channels',
     'channels_redis',
-    'rest_framework',
+    # 'rest_framework',
     'webpack_loader',
+    'graphene-django',
 ]
 
 STATIC_URL = '/static/'
@@ -153,6 +154,10 @@ WEBPACK_LOADER = {
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
+}
+
+GRAPHENE = {
+    'SCHEMA': 'backend.schema.schema'
 }
 
 CHANNEL_LAYERS = {

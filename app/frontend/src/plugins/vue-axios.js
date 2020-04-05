@@ -16,10 +16,9 @@ function getCSRFToken() {
 }
 
 export default VueAxiosPlugin.install = function (Vue, {axios}) {
-    const csrf_token = getCSRFToken();
     axios.defaults.headers.common = {
         "X-Requested-With": "XMLHttpRequest",
-        "X-CSRF-Token": csrf_token
+        "X-CSRF-Token": getCSRFToken()
     };
     Vue.axios = axios;
     Object.defineProperties(Vue.prototype, {

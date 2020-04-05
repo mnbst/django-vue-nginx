@@ -6,7 +6,7 @@ from django.db import models
 
 
 class Word(models.Model):
-    word_ini = models.CharField(max_length=1)
+    word_ini = models.CharField(max_length=1, db_index=True)
     word = models.CharField(max_length=50, unique=True)
     meaning = models.CharField(max_length=200, default='')
 
@@ -47,9 +47,9 @@ class WordAppearance(models.Model):
     appearance = ArrayField(models.IntegerField(default=0))
 
     @classmethod
-    def convert_to_objects(cls, word: str):
-        objects = cls.objects.filter(word=word)
-        return list(map(lambda x: {x.video_href: x.appearance}, objects))
+    def convert_objects(cls, word: str):
+        word_appearances = cls.objects.filter(word=word)
+        return list(map(lambda x: {x.video_href: x.appearance}, word_appearances))
 
     def __str__(self):
         return self.word

@@ -30,7 +30,7 @@ export default new vuex.Store({
         loadWords({
                       commit
                   }) {
-            axios.get('/api/words').then(data => {
+            axios.get('/api/words', {params: {q: ''}}).then(data => {
                 let words = data.data;
                 words.sort(dynamicSort('word'));
                 commit('SET_WORDS', words)
@@ -41,7 +41,7 @@ export default new vuex.Store({
         loadVideos({
                        commit
                    }) {
-            axios.get('/api/videos').then(data => {
+            axios.get('/api/videos', {params: {video_href: ''}}).then(data => {
                 let videos = data.data;
                 for (let k in videos) {
                     videos[k].video_upload_date = new Date(videos[k].video_upload_date)
@@ -54,9 +54,9 @@ export default new vuex.Store({
         loadFetchSetting({
                              commit
                          }) {
-            axios.get('/api/fetch_setting').then(data => {
+            axios.get('/api/fetch_setting', {params: {user_id: ''}}).then(data => {
                 let fetch_setting = data.data[0];
-                if (fetch_setting==null) {
+                if (fetch_setting == null) {
                     fetch_setting = {
                         authority: "",
                         excepted_href: [],
@@ -76,7 +76,7 @@ export default new vuex.Store({
         loadCaptions({
                          commit
                      }) {
-            axios.get('/api/captions').then(data => {
+            axios.get('/api/captions', {params: {video_href: ''}}).then(data => {
                 let captions = data.data;
                 commit('SET_CAPTIONS', captions)
             }).catch(e => {
