@@ -34,7 +34,7 @@
                                                         <v-row>
                                                             <v-col cols="12">
                                                                 <v-text-field label="word_ini*" required
-                                                                              v-model="Word.word_ini"></v-text-field>
+                                                                              v-model="Word.wordIni"></v-text-field>
                                                             </v-col>
                                                             <v-col cols="12">
                                                                 <v-text-field label="word*" required
@@ -69,7 +69,7 @@
                                     <v-card-title class="headline font-weight-bold mx-auto">{{item.word}}</v-card-title>
                                     <v-col cols="12" sm="12">
                                         <h3>word_ini</h3>
-                                        <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.word_ini"></v-text-field>
+                                        <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.wordIni"></v-text-field>
                                     </v-col>
                                     <v-col cols="12" sm="12">
                                         <h3>word</h3>
@@ -121,7 +121,7 @@
             dialog: false,
             confirmationDialog: false,
             Word: {
-                word_ini: "",
+                wordIni: "",
                 word: "",
                 meaning: ""
             }
@@ -141,7 +141,7 @@
             },
             showCreateDialog: function () {
                 this.Word = {
-                    word_ini: "",
+                    wordIni: "",
                     word: "",
                     meaning: ""
                 };

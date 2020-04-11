@@ -7,6 +7,8 @@ import time
 import urllib.request
 import xml.etree.ElementTree as ElementTree
 from html import unescape
+from itertools import zip_longest
+from typing import Optional
 
 import django
 import isodate
@@ -95,8 +97,8 @@ class YoutubeScraping:
     def youtube_search(self):
         self.__send_to_websocket('connecting...')
         Video.objects.filter(
-            video_href__in=self.settings['video_to_delete'] + self.settings[
-                'excepted_href'] + self.EXCEPT_VIDEO).delete()
+            video_href__in=self.settings['videoToDelete'] + self.settings[
+                'exceptedHref'] + self.EXCEPT_VIDEO).delete()
 
         youtube = build(self.YOUTUBE_API_SERVICE_NAME,
                         self.YOUTUBE_API_VERSION,
@@ -107,7 +109,7 @@ class YoutubeScraping:
             search_response = youtube.search().list(
                 q='indonesia',
                 part="id,snippet",
-                maxResults=self.settings['video_per_page'],
+                maxResults=self.settings['videoPerPage'],
                 regionCode="id",
                 relevanceLanguage="id",
                 safeSearch="moderate",
@@ -123,12 +125,12 @@ class YoutubeScraping:
         page_token = search_response.get("nextPageToken", str)
         self.__fill_in_db(response=search_response)
 
-        for _ in range(0, self.settings['page_to_crawl'] - 1):
+        for _ in range(0, self.settings['pageToCrawl'] - 1):
             search_response.update(youtube.search().list(
                 q='indonesia',
                 pageToken=page_token,
                 part="id,snippet",
-                maxResults=self.settings['video_per_page'],
+                maxResults=self.settings['videoPerPage'],
                 regionCode="id",
                 relevanceLanguage="id",
                 safeSearch="moderate",
@@ -143,7 +145,7 @@ class YoutubeScraping:
         for search_result in response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
                 href = search_result["id"]["videoId"]
-                if href in self.EXCEPT_VIDEO + self.settings['excepted_href']:
+                if href in self.EXCEPT_VIDEO + self.settings['exceptedHref']:
                     continue
             else:
                 continue
@@ -151,7 +153,7 @@ class YoutubeScraping:
             if not video_exists:
                 self.__send_to_websocket(f'getting video id: {href}')
 
-            if video_exists and href not in self.settings['video_to_renewal']:
+            if video_exists and href not in self.settings['videoToRenewal']:
                 continue
 
             lang_codes = list()
@@ -172,7 +174,7 @@ class YoutubeScraping:
                     lang_codes.append(lang_code)
 
             # 字幕言語の数を指定してる
-            if len(lang_codes) < self.settings['language_limit'] + 1 and 'id' in lang_codes:
+            if len(lang_codes) < self.settings['languageLimit'] + 1 and 'id' in lang_codes:
                 name = r.attrib.get('name')
                 self.__send_to_websocket('VIDEO TITLE: ' + search_result['snippet']['title'])
                 title = search_result["snippet"]["title"]
@@ -181,18 +183,17 @@ class YoutubeScraping:
                               video_time=self.__get_duration(href), video_title=title, video_genre=[],
                               youtubeID=search_result["snippet"]["channelId"],
                               video_upload_date=search_result["snippet"]["publishedAt"])
-
-                script, element = self.__make_script(name, video_instance=video)
-                word_appearances = []
+                script, elements = self.__make_script(name, video_instance=video)
                 if script is None:
                     return True
-                elif len(script) < self.settings['minimum_sentence']:
-                    self.__send_to_websocket(f'"{title}" has short sentences')
+                elif len(script) < self.settings['minimumSentence']:
+                    self.__send_to_websocket(f'"{title}" has short sentences❗️')
                     continue
-                for el in element:
-                    word_instance = Word.objects.get(word=el)
+                word_appearances = []
+                for element in elements:
+                    word_instance = Word.objects.get(word=element)
                     word_appearances.append(
-                        WordAppearance(word=word_instance, video_href=video, appearance=element[el]))
+                        WordAppearance(word=word_instance, video_href=video, appearance=elements[element]))
                 with transaction.atomic():
                     try:
                         video.save()
@@ -201,7 +202,7 @@ class YoutubeScraping:
                     except Error as e:
                         self.__send_to_websocket(str(e))
 
-    def __make_script(self, name: str, video_instance):
+    def __make_script(self, name: str, video_instance: Video):
         url = f"http://video.google.com/timedtext?lang=id&name={name}&v={video_instance.video_href}"
         req = requests.get(url, timeout=(connect_timeout, read_timeout))
         if not req.ok:
@@ -209,9 +210,9 @@ class YoutubeScraping:
         root = ElementTree.fromstring(req.content)
 
         # 字幕つくる。構成単語も
-        element = dict()
-        script = list()
-        index = int()
+        word_appearances: Optional[dict] = {}
+        script: Optional[list] = []
+        index: Optional[int] = 0
 
         for r in root.iter():
             imi = list()
@@ -227,31 +228,31 @@ class YoutubeScraping:
             try:
                 raw_list = nltk.tokenize.word_tokenize(text)
                 raw_list = [re.sub(self.REGEX_EXCEPT_HYPHEN, '', item) for item in raw_list]
-                word = [i.lower() for i in raw_list if i and i != '-']
+                words = [i.lower() for i in raw_list if i and i != '-']
             except TypeError:
                 continue
 
-            if not word:
+            if not words:
                 continue
 
             # DBから意味を取得。なければinsert
             idiom_flag = False
-            for j, w in enumerate(word):
+            for j, w in enumerate(words):
                 meaning = str()
                 idiom = str()
                 if idiom_flag or re.match(self.REGEX_EXCEPT_HYPHEN, w):
                     idiom_flag = False
                     try:
-                        word.remove(w)
-                        w = word[j]
+                        words.remove(w)
+                        w = words[j]
                     except IndexError:
                         continue
 
                 if w.startswith('-') or w.endswith('-'):
                     w = re.sub('-', '', w)
 
-                if w != 'di' and j + 1 != len(word) and word[j + 1] not in ['ini', '-']:
-                    idiom = ' '.join([w, word[j + 1]])
+                if w != 'di' and j + 1 != len(words) and words[j + 1] not in ['ini', '-']:
+                    idiom = ' '.join([w, words[j + 1]])
                     meaning = self.__get_imi(idiom)
                 if meaning:
                     w = idiom
@@ -259,24 +260,24 @@ class YoutubeScraping:
                 else:
                     meaning = self.__get_imi(w)
 
-                if meaning and w in element:
-                    element[w].append(index)
+                if meaning and w in word_appearances:
+                    word_appearances[w].append(index)
                 elif meaning and Word.objects.filter(word=w).exists():
-                    element[w] = [index]
+                    word_appearances[w] = [index]
 
-                if word[j]:
+                if words[j]:
                     imi.append(meaning)
-                    word[j] = w
+                    words[j] = w
 
-            word = [i for i in word if i]
+            words = [i for i in words if i]
             start_time, end_time = self.__get_start_end(r)
-            sentence = Caption(video_href=video_instance, index=index, start_time=start_time,
-                               end_time=end_time, text=text,
-                               words=word, meanings=imi)
-            script.append(sentence)
+            caption = Caption(video_href=video_instance, index=index, start_time=start_time,
+                              end_time=end_time, text=text,
+                              word_pairs=dict(zip_longest(words, imi, fillvalue='')))
+            script.append(caption)
             index = index + 1
 
-        return script, element
+        return script, word_appearances
 
     @staticmethod
     def __get_start_end(r):

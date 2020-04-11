@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.core.validators import MaxValueValidator
 from django.db import models
 
@@ -32,9 +32,7 @@ class Caption(models.Model):
     start_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
     end_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
     text = models.CharField(max_length=500)
-    words = ArrayField(models.CharField(max_length=20, null=True, blank=True))
-    meanings = ArrayField(
-        models.CharField(max_length=200, null=True, blank=True))
+    word_pairs = JSONField(default=None)
     video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -42,13 +40,12 @@ class Caption(models.Model):
 
 
 class WordAppearance(models.Model):
-    word = models.ForeignKey(Word, to_field='word', on_delete=models.CASCADE)
-    video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE)
+    word = models.ForeignKey(Word, to_field='word', on_delete=models.CASCADE, db_index=True)
+    video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE, default='')
     appearance = ArrayField(models.IntegerField(default=0))
 
-    @classmethod
-    def convert_objects(cls, word: str):
-        word_appearances = cls.objects.filter(word=word)
+    def convert_objects(self):
+        word_appearances = self.objects.filter(word=self.word)
         return list(map(lambda x: {x.video_href: x.appearance}, word_appearances))
 
     def __str__(self):

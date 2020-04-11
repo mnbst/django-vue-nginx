@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'channels_redis',
     # 'rest_framework',
     'webpack_loader',
-    'graphene-django',
+    'graphene_django',
 ]
 
 STATIC_URL = '/static/'

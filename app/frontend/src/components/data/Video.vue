@@ -35,40 +35,37 @@
                                 <v-text-field
                                   label="video_href*"
                                   required
-                                  v-model="Video.video_href"
+                                  v-model="Video.videoHref"
                                 ></v-text-field>
                               </v-col>
                               <v-col cols="12">
                                 <v-text-field
                                   label="video_title*"
                                   required
-                                  v-model="Video.video_title"
+                                  v-model="Video.videoTitle"
                                 ></v-text-field>
                               </v-col>
                               <v-col cols="12">
-                                <v-text-field label="video_img*" required v-model="Video.video_img"></v-text-field>
+                                <v-text-field label="video_img*" required v-model="Video.videoImg"></v-text-field>
                               </v-col>
                               <v-col cols="12">
                                 <v-text-field
                                   label="vieo_time*"
-                                  min="0"
-                                  step="1"
-                                  type="number"
                                   required
-                                  v-model="Video.video_time"
+                                  v-model="Video.videoTime"
                                 ></v-text-field>
                               </v-col>
                               <v-col cols="2">
                                 <v-text-field
                                   label="vieo_genre*"
                                   required
-                                  v-model="Video.video_genre[0]"
+                                  v-model="Video.videoGenre[0]"
                                 ></v-text-field>
                               </v-col>
                               <v-col cols="2" v-for="(input, index) in form" :key="index">
                                 <v-text-field
                                   label="vieo_genre"
-                                  v-model="Video.video_genre[index +1]"
+                                  v-model="Video.videoGenre[index +1]"
                                 ></v-text-field>
                               </v-col>
                               <v-btn icon bottom color="grey lighten-1" v-on:click="add_form(form)">
@@ -89,7 +86,7 @@
                               <v-col cols="12">
                                 <v-datetime-picker
                                   label="vieo_upload_date*"
-                                  v-model="Video.video_upload_date"
+                                  v-model="Video.videoUploadDate"
                                   :text-field-props="{prependIcon: 'event'}"
                                 ></v-datetime-picker>
                               </v-col>
@@ -113,23 +110,20 @@
             </v-row>
             <v-col v-for="item in videos" :key="item.id">
               <v-card class="mx-auto d-flex flex-wrap align-center" max-width="800">
-                <v-card-title class="headline font-weight-bold mx-auto">{{item.video_title}}</v-card-title>
+                <v-card-title class="headline font-weight-bold mx-auto">{{item.videoTitle}}</v-card-title>
                 <v-col cols="12" sm="12">
                   <h3>video_href</h3>
-                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_href"></v-text-field>
+                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.videoHref"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12">
                   <h3>video_img</h3>
-                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_img"></v-text-field>
+                  <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.videoImg"></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12">
                   <h3>video_time</h3>
                   <v-text-field
                     class="my-n2 mb-n7 pa-0"
-                    min="0"
-                    step="1"
-                    type="number"
-                    v-model="item.video_time"
+                    v-model="item.videoTime"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="12">
@@ -139,14 +133,14 @@
                 <v-col cols="12">
                   <h3>video_genre</h3>
                   <v-row>
-                    <v-col cols="2" v-for="(_,i) in item.video_genre" :key="i">
-                      <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.video_genre[i]"></v-text-field>
+                    <v-col cols="2" v-for="(_,i) in item.videoGenre" :key="i">
+                      <v-text-field class="my-n2 mb-n7 pa-0" v-model="item.videoGenre[i]"></v-text-field>
                     </v-col>
                     <v-btn
                       icon
                       bottom
                       color="grey lighten-1"
-                      v-on:click="add_form(item.video_genre)"
+                      v-on:click="add_form(item.videoGenre)"
                     >
                       <v-icon dark>add_circle</v-icon>
                     </v-btn>
@@ -154,8 +148,8 @@
                       icon
                       bottom
                       color="grey lighten-1"
-                      v-on:click="remove_form(item.video_genre)"
-                      v-if="item.video_genre.length>1"
+                      v-on:click="remove_form(item.videoGenre)"
+                      v-if="item.videoGenre.length>1"
                     >
                       <v-icon dark>remove_circle</v-icon>
                     </v-btn>
@@ -164,7 +158,7 @@
                 <v-col cols="12" sm="12">
                   <h3>video_upload_date</h3>
                   <v-datetime-picker
-                    v-model="item.video_upload_date"
+                    v-model="item.videoUploadDate"
                     :text-field-props="{prependIcon:'event'}"
                   ></v-datetime-picker>
                 </v-col>
@@ -178,7 +172,7 @@
             </v-col>
             <v-dialog v-model="confirmationDialog" max-width="290">
               <v-card>
-                <v-card-title class="headline">{{Video.video_href}}を削除しますか？</v-card-title>
+                <v-card-title class="headline">{{Video.videoHref}}を削除しますか？</v-card-title>
                 <v-card-actions>
                   <v-btn color="green darken-1" text @click="confirmationDialog = false">Disagree</v-btn>
                   <v-btn color="green darken-1" text @click="deleteItem(Video)">Agree</v-btn>
@@ -204,11 +198,11 @@ const re = /\S+/;
 const promise = function(item) {
   return new Promise(function(resolve) {
     Object.keys(item).forEach(function(prop) {
-      if (typeof item[prop] == typeof []) {
+      if (typeof item[prop] === typeof []) {
         try {
           item[prop] = item[prop].filter(item => item.match(re));
         } catch (_) {
-          return;
+          return null;
         }
       }
     });
@@ -224,13 +218,13 @@ export default {
     dialog: false,
     confirmationDialog: false,
     Video: {
-      video_href: "",
-      video_title: "",
-      video_img: "",
-      video_time: 0,
-      video_genre: [],
+      videoHref: "",
+      videoTitle: "",
+      videoImg: "",
+      videoTime: 0,
+      videoGenre: [],
       youtubeID: "",
-      video_upload_date: new Date()
+      videoUploadDate: new Date()
     },
     form: []
   }),
@@ -267,13 +261,13 @@ export default {
     },
     showCreateDialog: function() {
       this.Video = {
-        video_href: "",
-        video_title: "",
-        video_img: "",
-        video_time: "",
-        video_genre: [],
-        youtubeID: "",
-        video_upload_date: new Date()
+      videoHref: "",
+      videoTitle: "",
+      videoImg: "",
+      videoTime: 0,
+      videoGenre: [],
+      youtubeID: "",
+      videoUploadDate: new Date()
       };
       this.dialog = true;
     },

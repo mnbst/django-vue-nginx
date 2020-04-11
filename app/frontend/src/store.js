@@ -30,8 +30,8 @@ export default new vuex.Store({
         loadWords({
                       commit
                   }) {
-            axios.get('/api/words', {params: {q: ''}}).then(data => {
-                let words = data.data;
+            axios.post('/graphql', {query: `query{word{id,wordIni,word,meaning}}`}).then(result => {
+                let words = result.data.data.word;
                 words.sort(dynamicSort('word'));
                 commit('SET_WORDS', words)
             }).catch(e => {
@@ -41,8 +41,8 @@ export default new vuex.Store({
         loadVideos({
                        commit
                    }) {
-            axios.get('/api/videos', {params: {video_href: ''}}).then(data => {
-                let videos = data.data;
+            axios.post('/graphql', {query: `query{video{id,videoHref,videoImg,videoTime,videoTitle,videoGenre,youtubeID}}`}).then(data => {
+                let videos = data.data.data.video;
                 for (let k in videos) {
                     videos[k].video_upload_date = new Date(videos[k].video_upload_date)
                 }
@@ -54,18 +54,31 @@ export default new vuex.Store({
         loadFetchSetting({
                              commit
                          }) {
-            axios.get('/api/fetch_setting', {params: {user_id: ''}}).then(data => {
-                let fetch_setting = data.data[0];
-                if (fetch_setting == null) {
+            axios.post('/graphql', {
+                query: `query{ settings(authority:"super") {
+                              id
+                              authority
+                              exceptedHref
+                              pageToCrawl
+                              videoPerPage
+                              videoToDelete
+                              videoToRenewal
+                              minimumSentence
+                              languageLimit
+                              }
+                         }`
+            }).then(data => {
+                let fetch_setting = data.data.data.settings;
+                if (fetch_setting === null) {
                     fetch_setting = {
                         authority: "",
-                        excepted_href: [],
-                        page_to_crawl: 1,
-                        language_limit: 1,
-                        minimum_sentence: 10,
-                        video_per_page: 1,
-                        video_to_delete: [],
-                        video_to_renewal: []
+                        exceptedHref: [],
+                        pageToCrawl: 1,
+                        languageLimit: 1,
+                        minimumSentence: 10,
+                        videoPerPage: 1,
+                        videoToDelete: [],
+                        videoToRenewal: []
                     }
                 }
                 commit('SET_FETCH_SETTING', fetch_setting)
