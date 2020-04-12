@@ -152,8 +152,13 @@
                 this.confirmationDialog = true;
             },
             add: function () {
+                let word = this.Word
                 axios
-                    .post("/api/words/", this.Word)
+                    .post("/graphql", {
+                        mutation: `mutation{
+                    createWord(input:{wordIni:` + word + `})
+                            {id,wordIni,word,meaning}}`
+                    })
                     .then(response => {
                         this.$store.dispatch("loadWords");
                         console.log(response);
@@ -166,7 +171,14 @@
             modify: function (item) {
                 console.log(item)
                 axios
-                    .patch(item.url, item)
+                    .post("/graphql", {
+                        mutation: `mutation{
+                            createWord(input:{id:` + item.id +
+                            `wordIni:` + item.wordIni +
+                            `, word:` + item.word +
+                            `, meaning:` + item.meaning + `})
+                            {id,wordIni,word,meaning}}`
+                    })
                     .then(response => {
                         this.$store.dispatch("loadWords");
                         console.log(response);

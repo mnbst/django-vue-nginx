@@ -5,8 +5,8 @@ from celery.result import AsyncResult
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 
-from .settings import END_MESSAGE
-from .tasks import scraping
+from ..settings import END_MESSAGE
+from .scraping.tasks import scraping
 
 
 class FetchConsumer(AsyncWebsocketConsumer):

@@ -1,8 +1,8 @@
 version: "3.7"
 
 services:
-  web:
-    container_name: django
+  backend:
+    container_name: backend
     restart: always
     build:
       context: ./app
@@ -51,9 +51,9 @@ services:
     depends_on:
       - db
       - redis
-      - web
+      - backend
   frontend:
-    container_name: vue
+    container_name: frontend
     restart: on-failure:1
     build: ./app/frontend
     volumes:

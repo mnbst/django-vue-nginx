@@ -22,19 +22,19 @@
                                 <v-toolbar-title class="headline font-weight-bold">setting</v-toolbar-title>
                                 <v-spacer></v-spacer>
                                 <v-card-actions>
-                                    <v-btn class="primary" v-on:click="modify(fetch_setting)">
+                                    <v-btn class="primary" v-on:click="modify(settings)">
                                         設定を保存
                                     </v-btn>
                                     <v-btn
                                             v-if="activate===false"
                                             color="orange font-weight-bold"
-                                            @click="fetch(fetch_setting)"
+                                            @click="fetch(settings)"
                                     >実行
                                     </v-btn>
                                     <v-btn
                                             v-else
                                             color="orange font-weight-bold"
-                                            @click="stop_fetch(fetch_setting)"
+                                            @click="stop_fetch(settings)"
                                     >中止
                                     </v-btn>
                                 </v-card-actions>
@@ -50,7 +50,7 @@
                                 <number-input
                                         inline
                                         controls
-                                        v-model="fetch_setting.pageToCrawl"
+                                        v-model="settings.pageToCrawl"
                                         :min="1"
                                         :max="10"
                                         :step="1"
@@ -63,7 +63,7 @@
                                 <number-input
                                         inline
                                         controls
-                                        v-model="fetch_setting.languageLimit"
+                                        v-model="settings.languageLimit"
                                         :min="1"
                                         :max="5"
                                         :step="1"
@@ -76,7 +76,7 @@
                                 <number-input
                                         inline
                                         controls
-                                        v-model="fetch_setting.minimumSentence"
+                                        v-model="settings.minimumSentence"
                                         :min="10"
                                         :max="1000"
                                         :step="1"
@@ -91,7 +91,7 @@
                                 <number-input
                                         inline
                                         controls
-                                        v-model="fetch_setting.videoPerPage"
+                                        v-model="settings.videoPerPage"
                                         :min="1"
                                         :max="50"
                                         :step="1"
@@ -106,7 +106,7 @@
                                     icon
                                     top
                                     color="grey lighten-1"
-                                    v-on:click="add_form(fetch_setting.videoToDelete)"
+                                    v-on:click="add_form(settings.videoToDelete)"
                             >
                                 <v-icon dark>add_circle</v-icon>
                             </v-btn>
@@ -114,16 +114,16 @@
                                     icon
                                     top
                                     color="grey lighten-1"
-                                    v-on:click="remove_form(fetch_setting.videoToDelete)"
-                                    v-if="fetch_setting.videoToDelete && fetch_setting.videoToDelete.length>0"
+                                    v-on:click="remove_form(settings.videoToDelete)"
+                                    v-if="settings.videoToDelete && settings.videoToDelete.length>0"
                             >
                                 <v-icon dark>remove_circle</v-icon>
                             </v-btn>
-                            <v-col cols="2" v-for="(_,index_of_delete) in fetch_setting.videoToDelete"
+                            <v-col cols="2" v-for="(_,index_of_delete) in settings.videoToDelete"
                                    :key="index_of_delete">
                                 <v-text-field
                                         class="my-n2 mb-n7 pa-0"
-                                        v-model="fetch_setting.videoToDelete[index_of_delete]"
+                                        v-model="settings.videoToDelete[index_of_delete]"
                                 ></v-text-field>
                             </v-col>
                         </v-row>
@@ -135,7 +135,7 @@
                                     icon
                                     top
                                     color="grey lighten-1"
-                                    v-on:click="add_form(fetch_setting.videoToRenewal)"
+                                    v-on:click="add_form(settings.videoToRenewal)"
                             >
                                 <v-icon dark>add_circle</v-icon>
                             </v-btn>
@@ -143,16 +143,16 @@
                                     icon
                                     top
                                     color="grey lighten-1"
-                                    v-on:click="remove_form(fetch_setting.videoToRenewal)"
-                                    v-if="fetch_setting.videoToRenewal && fetch_setting.videoToRenewal.length>0"
+                                    v-on:click="remove_form(settings.videoToRenewal)"
+                                    v-if="settings.videoToRenewal && settings.videoToRenewal.length>0"
                             >
                                 <v-icon dark>remove_circle</v-icon>
                             </v-btn>
-                            <v-col cols="2" v-for="(_,index_of_renewal) in fetch_setting.videoToRenewal"
+                            <v-col cols="2" v-for="(_,index_of_renewal) in settings.videoToRenewal"
                                    :key="index_of_renewal">
                                 <v-text-field
                                         class="my-n2 mb-n7 pa-0"
-                                        v-model="fetch_setting.videoToRenewal[index_of_renewal]"
+                                        v-model="settings.videoToRenewal[index_of_renewal]"
                                 ></v-text-field>
                             </v-col>
                         </v-row>
@@ -164,7 +164,7 @@
                                     icon
                                     top
                                     color="grey lighten-1"
-                                    v-on:click="add_form(fetch_setting.exceptedHref)"
+                                    v-on:click="add_form(settings.exceptedHref)"
                             >
                                 <v-icon dark>add_circle</v-icon>
                             </v-btn>
@@ -172,15 +172,15 @@
                                     icon
                                     top
                                     color="grey lighten-1"
-                                    v-on:click="remove_form(fetch_setting.exceptedHref)"
-                                    v-if="fetch_setting.exceptedHref && fetch_setting.exceptedHref.length>0"
+                                    v-on:click="remove_form(settings.exceptedHref)"
+                                    v-if="settings.exceptedHref && settings.exceptedHref.length>0"
                             >
                                 <v-icon dark>remove_circle</v-icon>
                             </v-btn>
-                            <v-col cols="2" v-for="(_,index_of_excepted) in fetch_setting.exceptedHref"
+                            <v-col cols="2" v-for="(_,index_of_excepted) in settings.exceptedHref"
                                    :key="index_of_excepted">
                                 <v-text-field class="my-n2 mb-n7 pa-0"
-                                              v-model="fetch_setting.exceptedHref[index_of_excepted]"></v-text-field>
+                                              v-model="settings.exceptedHref[index_of_excepted]"></v-text-field>
                             </v-col>
                         </v-row>
                     </v-col>
@@ -191,11 +191,11 @@
 </template>
 
 <script>
-    import {mapState} from "vuex";
     import Vue from "vue";
     import VueNumberInput from "@chenfengyuan/vue-number-input";
     import axios from "axios";
     import virtualList from "vue-virtual-scroll-list";
+    import {SETTINGS} from '../../graphql/gql.setting'
 
     Vue.use(VueNumberInput);
 
@@ -217,7 +217,7 @@
         } else {
             setting.authority = 'super';
             axios
-                .post("/api/fetch_setting/", setting).then((response) => {
+                .post("/api/settings/", setting).then((response) => {
                 resolve(response)
             })
         }
@@ -235,15 +235,13 @@
         data: () => ({
             items: [{id: 0, text: "HELLO"}],
             activate: false,
+            settings:{},
         }),
         components: {
             "virtual-list": virtualList
         },
-        mounted() {
-            this.$store.dispatch("loadFetchSetting");
-        },
-        computed: {
-            ...mapState(["fetch_setting"])
+        apollo: {
+            settings: SETTINGS
         },
         methods: {
             add_form(form) {

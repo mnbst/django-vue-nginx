@@ -1,7 +1,9 @@
 import graphene
 
-from .dictionary_console.schema import Query
+from .dictionary_console.schema.query.root import RootQuery
+from .dictionary_console.schema.mutation.root import RootMutation
 
 schema = graphene.Schema(
-    query=Query,
+    query=RootQuery,
+    mutation=RootMutation,
 )

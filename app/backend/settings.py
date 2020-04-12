@@ -70,7 +70,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-ASGI_APPLICATION = 'backend.routing.application'
+ASGI_APPLICATION = 'backend.celery.routing.application'
 
 TEMPLATES = [
     {
@@ -178,7 +178,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_IMPORTS = ('backend.tasks',)
+CELERY_IMPORTS = ('backend.celery.scraping.tasks',)
 BROKER_USE_SSL = {'ssl_cert_reqs': ssl.CERT_REQUIRED}
 
 current_app.conf.CELERY_ALWAYS_EAGER = True if DEBUG_CELERY else False

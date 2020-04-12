@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 
-from .models import *
+from ...models import *
 
 
 class WordType(DjangoObjectType):
@@ -19,7 +19,7 @@ class FetchSettingsType(DjangoObjectType):
         model = FetchSetting
 
 
-class Query(graphene.ObjectType):
+class RootQuery(graphene.ObjectType):
     word = graphene.List(WordType,
                          word_ini=graphene.String(),
                          word=graphene.String())
@@ -32,7 +32,6 @@ class Query(graphene.ObjectType):
     def resolve_word(self, info, **kwargs):
         word_ini = kwargs.get('word_ini')
         word = kwargs.get('word')
-
         if word_ini and not word:
             return Word.objects.order_by('word').filter(word_ini=word_ini).all()
         elif word:
@@ -48,7 +47,7 @@ class Query(graphene.ObjectType):
         elif genre:
             return Video.objects.filter(video_genre__in=genre)
         else:
-            return Video.objects.filter().all()
+            return Video.objects.filter()[:50].all()
 
     def resolve_settings(self, info, **kwargs):
         authority = kwargs.get('authority')

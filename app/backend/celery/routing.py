@@ -3,7 +3,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.conf.urls import url
 
-from . import settings
+from .. import settings
 from .consumers import FetchConsumer, DebugFetchConsumer
 
 application = ProtocolTypeRouter({

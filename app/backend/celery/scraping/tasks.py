@@ -23,11 +23,11 @@ from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
-from . import settings as settings_py
+from ... import settings as settings_py
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
-from .dictionary_console.models import *
+from ...dictionary_console.models import *
 
 connect_timeout, read_timeout = 3.0, 30.0
 
