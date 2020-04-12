@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     # additional
     'channels',
     'channels_redis',
-    # 'rest_framework',
     'webpack_loader',
     'graphene_django',
 ]
