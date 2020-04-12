@@ -1,6 +1,6 @@
 import graphene
 
-from ....models import Word
+from app.backend.dictionary_console.models import Word
 
 
 class WordInput(graphene.InputObjectType):

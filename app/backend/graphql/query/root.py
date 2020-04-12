@@ -1,7 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 
-from ...models import *
+from app.backend.dictionary_console.models import *
 
 
 class WordType(DjangoObjectType):

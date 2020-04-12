@@ -1,6 +1,6 @@
 import graphene
 
-from ....models import *
+from app.backend.dictionary_console.models import *
 
 class SettingsInput(graphene.InputObjectType):
     id = graphene.Int()
