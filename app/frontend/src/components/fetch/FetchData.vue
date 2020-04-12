@@ -193,9 +193,9 @@
 <script>
     import Vue from "vue";
     import VueNumberInput from "@chenfengyuan/vue-number-input";
-    import axios from "axios";
     import virtualList from "vue-virtual-scroll-list";
-    import {SETTINGS} from '../../graphql/gql.setting'
+    import {SETTING_OPTIMISTIC, SETTINGS} from '../../graphql/query/query.setting'
+    import {CREATE_SETTINGS} from '../../graphql/mutation/mutation.setting'
 
     Vue.use(VueNumberInput);
 
@@ -211,15 +211,10 @@
                     }
                 }
             });
-            axios.patch(setting.url, setting).then((response) => {
-                resolve(response)
-            })
+            resolve(setting)
         } else {
             setting.authority = 'super';
-            axios
-                .post("/api/settings/", setting).then((response) => {
-                resolve(response)
-            })
+            resolve(setting)
         }
     });
     const loc = window.location;
@@ -235,7 +230,7 @@
         data: () => ({
             items: [{id: 0, text: "HELLO"}],
             activate: false,
-            settings:{},
+            settings: {},
         }),
         components: {
             "virtual-list": virtualList
@@ -251,17 +246,25 @@
                 form.splice(-1, 1);
             },
             modify(setting) {
-                let items = this.$data.items;
+                const items = this.$data.items;
                 promise(setting)
-                    .then(response => {
-                        console.log(response);
-                        this.$store.dispatch("loadFetchSetting");
+                    .then(setting => {
+                        this.$apollo.mutate({
+                            mutation: CREATE_SETTINGS,
+                            variables: setting,
+                            update: (store, {data: {createSettings}}) => {
+                                const data = store.readQuery({query: SETTINGS});
+                                data.settings = createSettings;
+                                store.writeQuery({query: SETTINGS, data})
+                            },
+                            optimisticResponse: SETTING_OPTIMISTIC
+                        });
                         items.push({id: items.length, text: 'settings saved ✅'})
                     })
                     .catch(e => {
                         console.log(e);
                         setting.authority = '';
-                        items.push({id: items.length, text: 'ERROR while saving'})
+                        items.push({id: items.length, text: 'ERROR while saving❗️'})
                     });
             },
             fetch(setting) {
