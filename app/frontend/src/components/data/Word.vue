@@ -108,9 +108,8 @@
     </div>
 </template>
 
-<script scoped>
+<script>
     import {mapState} from "vuex";
-    import axios from "axios";
     import VirtualList from "vue-virtual-scroll-list";
 
     export default {
@@ -152,54 +151,54 @@
                 this.confirmationDialog = true;
             },
             add: function () {
-                let word = this.Word
-                axios
-                    .post("/graphql", {
-                        mutation: `mutation{
-                    createWord(input:{wordIni:` + word + `})
-                            {id,wordIni,word,meaning}}`
-                    })
-                    .then(response => {
-                        this.$store.dispatch("loadWords");
-                        console.log(response);
-                        this.dialog = false;
-                    })
-                    .catch(e => {
-                        console.log(e);
-                    });
+                // let word = this.Word;
+                // axios
+                //     .post("/graphql", {
+                //         mutation: `mutation{
+                //     createWord(input:{wordIni:` + word + `})
+                //             {id,wordIni,word,meaning}}`
+                //     })
+                //     .then(response => {
+                //         this.$store.dispatch("loadWords");
+                //         console.log(response);
+                //         this.dialog = false;
+                //     })
+                //     .catch(e => {
+                //         console.log(e);
+                //     });
             },
             modify: function (item) {
                 console.log(item)
-                axios
-                    .post("/graphql", {
-                        mutation: `mutation{
-                            createWord(input:{id:` + item.id +
-                            `wordIni:` + item.wordIni +
-                            `, word:` + item.word +
-                            `, meaning:` + item.meaning + `})
-                            {id,wordIni,word,meaning}}`
-                    })
-                    .then(response => {
-                        this.$store.dispatch("loadWords");
-                        console.log(response);
-                        this.dialog = false;
-                    })
-                    .catch(e => {
-                        console.log(e);
-                    });
+                // axios
+                //     .post("/graphql", {
+                //         mutation: `mutation{
+                //             createWord(input:{id:` + item.id +
+                //             `wordIni:` + item.wordIni +
+                //             `, word:` + item.word +
+                //             `, meaning:` + item.meaning + `})
+                //             {id,wordIni,word,meaning}}`
+                //     })
+                //     .then(response => {
+                //         this.$store.dispatch("loadWords");
+                //         console.log(response);
+                //         this.dialog = false;
+                //     })
+                //     .catch(e => {
+                //         console.log(e);
+                //     });
             },
-            deleteItem: function (item) {
-                axios
-                    .delete(item.url, item)
-                    .then(response => {
-                        this.$store.dispatch("loadWords");
-                        console.log(response);
-                        this.confirmationDialog = false;
-                    })
-                    .catch(e => {
-                        console.log(e);
-                    });
-            }
+            // deleteItem: function (item) {
+            //     // axios
+            //     //     .delete(item.url, item)
+            //     //     .then(response => {
+            //     //         this.$store.dispatch("loadWords");
+            //     //         console.log(response);
+            //     //         this.confirmationDialog = false;
+            //     //     })
+            //     //     .catch(e => {
+            //     //         console.log(e);
+            //     //     });
+            // }
         }
     };
 </script>

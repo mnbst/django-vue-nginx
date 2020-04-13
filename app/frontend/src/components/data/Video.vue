@@ -5,7 +5,7 @@
         <v-col cols="12">
           <v-card color="white align-center">
             <v-row>
-              <v-col cols="12" style="padding-top: 0px;">
+              <v-col cols="12" style="padding-top: 0;">
                 <v-toolbar flat dark>
                   <v-col cols="2">
                     <v-spacer></v-spacer>
@@ -188,27 +188,26 @@
 
 <script>
 import { mapState } from "vuex";
-import axios from "axios";
 import Vue from "vue";
 import DatetimePicker from "vuetify-datetime-picker";
 
 Vue.use(DatetimePicker);
 
-const re = /\S+/;
-const promise = function(item) {
-  return new Promise(function(resolve) {
-    Object.keys(item).forEach(function(prop) {
-      if (typeof item[prop] === typeof []) {
-        try {
-          item[prop] = item[prop].filter(item => item.match(re));
-        } catch (_) {
-          return null;
-        }
-      }
-    });
-    resolve(item);
-  });
-};
+// const re = /\S+/;
+// const promise = function(item) {
+//   return new Promise(function(resolve) {
+//     Object.keys(item).forEach(function(prop) {
+//       if (typeof item[prop] === typeof []) {
+//         try {
+//           item[prop] = item[prop].filter(item => item.match(re));
+//         } catch (_) {
+//           return null;
+//         }
+//       }
+//     });
+//     resolve(item);
+//   });
+// };
 
 export default {
   name: "Video",
@@ -244,21 +243,21 @@ export default {
     remove_form(form) {
       form.splice(-1, 1);
     },
-    submit: function(video) {
-      const _this = this;
-      promise(video).then(function(video) {
-        axios
-          .post("/api/videos/", video)
-          .then(response => {
-            console.log(response);
-            _this.$store.dispatch("loadVideos");
-            _this.dialog = false;
-          })
-          .catch(e => {
-            console.log(e);
-          });
-      });
-    },
+    // submit: function(video) {
+    //   const _this = this;
+    //   promise(video).then(function(video) {
+    //     axios
+    //       .post("/api/videos/", video)
+    //       .then(response => {
+    //         console.log(response);
+    //         _this.$store.dispatch("loadVideos");
+    //         _this.dialog = false;
+    //       })
+    //       .catch(e => {
+    //         console.log(e);
+    //       });
+    //   });
+    // },
     showCreateDialog: function() {
       this.Video = {
       videoHref: "",
@@ -275,32 +274,32 @@ export default {
       this.Video = item;
       this.confirmationDialog = true;
     },
-    modify: function(video) {
-      const _this = this;
-      promise(video).then(function(video) {
-        axios
-          .patch(video.url, video)
-          .then(response => {
-            console.log(response);
-            _this.dialog = false;
-          })
-          .catch(e => {
-            console.log(e);
-          });
-      });
-    },
-    deleteItem: function(item) {
-      axios
-        .delete(item.url, item)
-        .then(response => {
-          this.$store.dispatch("loadVideos");
-          console.log(response);
-          this.confirmationDialog = false;
-        })
-        .catch(e => {
-          console.log(e);
-        });
-    }
+    // modify: function(video) {
+    //   const _this = this;
+    //   promise(video).then(function(video) {
+    //     axios
+    //       .patch(video.url, video)
+    //       .then(response => {
+    //         console.log(response);
+    //         _this.dialog = false;
+    //       })
+    //       .catch(e => {
+    //         console.log(e);
+    //       });
+    //   });
+    // },
+    // deleteItem: function(item) {
+    //   axios
+    //     .delete(item.url, item)
+    //     .then(response => {
+    //       this.$store.dispatch("loadVideos");
+    //       console.log(response);
+    //       this.confirmationDialog = false;
+    //     })
+    //     .catch(e => {
+    //       console.log(e);
+    //     });
+    // }
   }
 };
 </script>

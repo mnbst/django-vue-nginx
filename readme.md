@@ -4,6 +4,11 @@
 Sending message from Celery task to Channels   
 
 ## Getting Started
+
+```
+cd frontend
+npm install
+```
 you need env/.env.dev or env/.env.prod file.  
 example below
 

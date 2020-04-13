@@ -23,7 +23,7 @@ export const CREATE_SETTINGS = gql`
     videoToDelete: $videoToDelete
     videoToRenewal: $videoToRenewal
   })
-  {    
+  {
     id
     authority
     exceptedHref

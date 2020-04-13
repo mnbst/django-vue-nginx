@@ -266,23 +266,22 @@
 
 <script>
 import { mapState } from "vuex";
-import axios from "axios";
 
-const re = /\S+/;
-const promise = function(item) {
-  return new Promise(function(resolve) {
-    Object.keys(item).forEach(function(prop) {
-      if (typeof item[prop] == typeof []) {
-        try {
-          item[prop] = item[prop].filter(item => item.match(re));
-        } catch (_) {
-          return;
-        }
-      }
-    });
-    resolve(item);
-  });
-};
+// const re = /\S+/;
+// const promise = function(item) {
+//   return new Promise(function(resolve) {
+//     Object.keys(item).forEach(function(prop) {
+//       if (typeof item[prop] == typeof []) {
+//         try {
+//           item[prop] = item[prop].filter(item => item.match(re));
+//         } catch (_) {
+//           return;
+//         }
+//       }
+//     });
+//     resolve(item);
+//   });
+// };
 
 export default {
   name: "Caption",
@@ -319,21 +318,21 @@ export default {
     remove_form(form) {
       form.splice(-1, 1);
     },
-    submit: function(caption) {
-      const _this = this;
-      promise(caption).then(function(caption) {
-        axios
-          .post("/api/captions/", caption)
-          .then(response => {
-            _this.$store.dispatch("loadCaptions");
-            console.log(response);
-            _this.dialog = false;
-          })
-          .catch(e => {
-            console.log(e);
-          });
-      });
-    },
+    // submit: function(caption) {
+    //   const _this = this;
+    //   promise(caption).then(function(caption) {
+    //     axios
+    //       .post("/api/captions/", caption)
+    //       .then(response => {
+    //         _this.$store.dispatch("loadCaptions");
+    //         console.log(response);
+    //         _this.dialog = false;
+    //       })
+    //       .catch(e => {
+    //         console.log(e);
+    //       });
+    //   });
+    // },
     showCreateDialog: function() {
       this.Caption = {
         video_href: "",
@@ -350,32 +349,32 @@ export default {
       this.Caption = item;
       this.confirmationDialog = true;
     },
-    modify: function(caption) {
-      const _this = this;
-      promise(caption).then(function(caption) {
-        axios
-          .patch(caption.url, caption)
-          .then(response => {
-            console.log(response);
-            _this.dialog = false;
-          })
-          .catch(e => {
-            console.log(e);
-          });
-      });
-    },
-    deleteItem: function(item) {
-      axios
-        .delete(item.url, item)
-        .then(response => {
-          this.$store.dispatch("loadVideos");
-          console.log(response);
-          this.confirmationDialog = false;
-        })
-        .catch(e => {
-          console.log(e);
-        });
-    }
+    // modify: function(caption) {
+    //   const _this = this;
+    //   promise(caption).then(function(caption) {
+    //     axios
+    //       .patch(caption.url, caption)
+    //       .then(response => {
+    //         console.log(response);
+    //         _this.dialog = false;
+    //       })
+    //       .catch(e => {
+    //         console.log(e);
+    //       });
+    //   });
+    // },
+    // deleteItem: function(item) {
+    //   axios
+    //     .delete(item.url, item)
+    //     .then(response => {
+    //       this.$store.dispatch("loadVideos");
+    //       console.log(response);
+    //       this.confirmationDialog = false;
+    //     })
+    //     .catch(e => {
+    //       console.log(e);
+    //     });
+    // }
   }
 };
 </script>
