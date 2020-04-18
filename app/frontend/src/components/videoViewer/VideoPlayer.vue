@@ -44,17 +44,17 @@
 
     export default {
         name: 'VideoPlayer',
-        apollo: {
-            videoList: VIDEO_LIST,
-            video: VIDEO,
-            // captions: CAPTION,
-        },
         data() {
             return {
                 video: {},
                 videoList: [],
                 captions: [],
             }
+        },
+        apollo: {
+            videoList: VIDEO_LIST,
+            video: VIDEO,
+            // captions: CAPTION,
         },
         components: {
             // "virtual-list": virtualList

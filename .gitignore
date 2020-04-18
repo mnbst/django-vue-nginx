@@ -4,3 +4,4 @@ get_caption_app
 .cache/
 postgres_data
 posts-data.json
+.idea
