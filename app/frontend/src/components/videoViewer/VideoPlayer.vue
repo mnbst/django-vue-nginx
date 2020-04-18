@@ -5,10 +5,14 @@
                 <div class="col-lg-7 col-xl-12">
                     <div class="video-container">
                         <h3>{{video.videoTitle}}</h3>
-                        <iframe class="video-player" width="640" height="360"
-                                :src="'https://www.youtube.com/embed/'+video.videoHref"
-                                frameborder="0"
-                                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                        <youtube class="video-player" :video-id="video.videoHref" @playing="playing" @paused="paused"
+                                 @ended="ended"/>
+                        <div id="subtitle_area" class="col-md-12">
+                            <div class="panel panel-default">
+                                <div id="subtitle_block"></div>
+                            </div>
+                        </div>
+                        <div id="subtitle_detail_area"></div>
                     </div>
                     <div class="row">
                     </div>
@@ -40,6 +44,11 @@
 
     export default {
         name: 'VideoPlayer',
+        apollo: {
+            videoList: VIDEO_LIST,
+            video: VIDEO,
+            // captions: CAPTION,
+        },
         data() {
             return {
                 video: {},
@@ -50,22 +59,20 @@
         components: {
             // "virtual-list": virtualList
         },
-        apollo: {
-            videoList: VIDEO_LIST,
-            video: VIDEO,
-            // captions: CAPTION,
-        },
         methods: {
             chooseVideo: function (video) {
-                this.$apollo.query({
-                    query: VIDEO,
-                    variables: {videoHref: video.videoHref},
-                    update: (store, {data: {video}}) => {
-                        const data = store.readQuery({query: VIDEO});
-                        data.video = video;
-                        store.writeQuery({query: VIDEO, data})
-                    },
+                this.$apollo.queries.video.refetch({
+                    videoHref: video.videoHref
                 })
+            },
+            playing: (event) => {
+                console.log(event.getCurrentTime());
+            },
+            paused: (event) => {
+                console.log(event.getCurrentTime())
+            },
+            ended: (event) => {
+                console.log(event.getCurrentTime())
             }
         }
     }
@@ -86,12 +93,6 @@
 
     .thumbnail h3 {
         font-size: 16px;
-    }
-
-    h3,
-    p {
-        margin: 0;
-        padding: 0;
     }
 
     .video-player {

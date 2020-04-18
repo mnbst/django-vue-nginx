@@ -69,9 +69,3 @@ class DebugFetchConsumer(WebsocketConsumer):
         self.send(text_data='starting...')
         settings = json.loads(text_data)
         self.result = scraping.delay(settings=settings)
-
-    def scraping_messages(self, event):
-        text = event["text"]
-        self.send(text_data=text)
-        if text == END_MESSAGE:
-            self.send(close=True)

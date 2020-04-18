@@ -86,13 +86,10 @@ class YoutubeScraping:
         if settings_py.DEBUG_CELERY:
             print(message)
         else:
-            async_to_sync(self.channel_layer.group_send)(
-                'scraping',
-                {
-                    "type": "scraping.messages",
-                    "text": message,
-                },
-            )
+            async_to_sync(self.channel_layer.group_send)("scraping", {
+                "type": "scraping.messages",
+                "text": message,
+            })
 
     def youtube_search(self):
         self.__send_to_websocket('connecting...')
@@ -302,7 +299,7 @@ class YoutubeScraping:
             return word.meaning
         url = f'https://njjn.weblio.jp/content/{w}'
 
-        time.sleep(0.3) if not settings_py.DEBUG_CELERY else time.sleep(0)
+        time.sleep(0) if settings_py.DEBUG_CELERY else time.sleep(0.3)
         r = requests.get(url, timeout=(connect_timeout, read_timeout))
         r.raise_for_status()
         soup = BeautifulSoup(r.text, 'lxml')

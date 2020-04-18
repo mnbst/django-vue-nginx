@@ -47,7 +47,9 @@
     import FetchData from "./components/fetch/FetchData";
     import Vue from "vue";
     import VueRouter from "vue-router";
+    import VueYoutube from 'vue-youtube'
 
+    Vue.use(VueYoutube)
     Vue.use(VueRouter);
 
     const routes = [

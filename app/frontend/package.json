@@ -12,6 +12,7 @@
     "@chenfengyuan/vue-number-input": "^1.2.0",
     "@vue/cli": "^4.3.1",
     "apollo-boost": "^0.4.7",
+    "apollo-cache-inmemory": "latest",
     "babel-cli": "^6.26.0",
     "core-js": "^3.6.2",
     "graphql": "^14.0.0",
@@ -20,11 +21,11 @@
     "vue-apollo": "^3.0.3",
     "vue-router": "^3.1.3",
     "vue-virtual-scroll-list": "^1.4.4",
+    "vue-youtube": "^1.4.0",
     "vuetify": "^2.1.14",
     "vuetify-datetime-picker": "^2.1.1",
     "vuex": "^3.1.2",
-    "webpack-dev-server": "^3.9.0",
-    "apollo-cache-inmemory": "latest"
+    "webpack-dev-server": "^3.9.0"
   },
   "devDependencies": {
     "@mdi/font": "^4.7.95",
