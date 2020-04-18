@@ -177,7 +177,7 @@
                             >
                                 <v-icon dark>remove_circle</v-icon>
                             </v-btn>
-                            <v-col cols="2" v-for="(_,index_of_excepted) in settings.exceptedHref"
+                            <v-col cols="2" v-for="(href,index_of_excepted) in settings.exceptedHref"
                                    :key="index_of_excepted">
                                 <v-text-field class="my-n2 mb-n7 pa-0"
                                               v-model="settings.exceptedHref[index_of_excepted]"></v-text-field>

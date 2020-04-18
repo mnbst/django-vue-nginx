@@ -17,7 +17,7 @@
                             </v-list-item-title>
                         </v-list-item>
 
-                        <v-list-item @click="drawer = false" to="/video_select">
+                        <v-list-item @click="drawer = false" to="/video_player">
                             <v-list-item-title>
                                 <h4>video</h4>
                             </v-list-item-title>
@@ -43,7 +43,7 @@
 
 <script>
     import Home from "./components/Home";
-    import VideoSelect from "./components/videoViewer/VideoSelect";
+    import VideoPlayer from "./components/videoViewer/VideoPlayer";
     import FetchData from "./components/fetch/FetchData";
     import Vue from "vue";
     import VueRouter from "vue-router";
@@ -52,7 +52,7 @@
 
     const routes = [
         {path: "/data", component: Home},
-        {path: "/video_select", component: VideoSelect},
+        {path: "/video_player", component: VideoPlayer},
         {path: "/fetch_data", component: FetchData}
     ];
 

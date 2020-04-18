@@ -1,6 +1,6 @@
 import {gql} from 'apollo-boost';
 
-export const SETTING_OPTIMISTIC = {
+export const CAPTION_OPTIMISTIC = {
     __typename: 'Mutation',
     createSettings: {
         __typename: "setting",
@@ -16,7 +16,7 @@ export const SETTING_OPTIMISTIC = {
     },
 };
 
-export const SETTINGS = gql`query{ settings(authority:"super") {
+export const CAPTION = gql`query{ settings(authority:"super") {
                               id
                               authority
                               exceptedHref

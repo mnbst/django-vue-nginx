@@ -508,4 +508,4 @@ class YoutubeScraping:
         duration = data['items'][0]['contentDetails']['duration']
         dur = isodate.parse_duration(duration).total_seconds()
         dur = int(dur)
-        return '{0:1}:{1:2}'.format(dur // 60, dur % 60)
+        return '{0:1d}:{1:02d}'.format(dur // 60, dur % 60)

@@ -33,7 +33,7 @@ class Caption(models.Model):
     end_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
     text = models.CharField(max_length=500)
     word_pairs = JSONField(default=None)
-    video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE)
+    video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE, db_index=True)
 
     def __str__(self):
         return str(self.text)
