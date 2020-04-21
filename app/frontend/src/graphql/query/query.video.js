@@ -13,28 +13,32 @@ export const VIDEO_OPTIMISTIC = {
     },
 };
 
-export const VIDEO = gql`query(
+export const VIDEO_CAPTION_SET = gql`query(
         $videoHref:String=""
-    ){ video(
+    ){ 
+    video(
         videoHref:$videoHref
     ) {
         id
         videoHref
-        videoImg
-        videoTime
         videoTitle
         videoGenre
-        youtubeID
     }
-}`;
-
-export const VIDEO_LIST = gql`query{ videoList{
+    captionList(
+        videoHref:$videoHref
+    ) {
+        index
+        startTime
+        endTime
+        text
+        words
+        meanings
+    }
+    videoList{
         id
         videoHref
         videoImg
         videoTime
         videoTitle
-        videoGenre
-        youtubeID
     }
 }`;

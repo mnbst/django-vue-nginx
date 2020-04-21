@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator
 from django.db import models
 
@@ -32,7 +32,8 @@ class Caption(models.Model):
     start_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
     end_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
     text = models.CharField(max_length=500)
-    word_pairs = JSONField(default=None)
+    words = ArrayField(models.CharField(max_length=50))
+    meanings = ArrayField(models.CharField(max_length=50))
     video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE, db_index=True)
 
     def __str__(self):

@@ -7,7 +7,6 @@ import time
 import urllib.request
 import xml.etree.ElementTree as ElementTree
 from html import unescape
-from itertools import zip_longest
 from typing import Optional
 
 import django
@@ -29,7 +28,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
 from ...dictionary_console.models import *
 
-connect_timeout, read_timeout = 3.0, 30.0
+time_out = (5.0, 30.0)
 
 
 @shared_task
@@ -155,7 +154,7 @@ class YoutubeScraping:
 
             lang_codes = list()
             url = f'https://www.youtube.com/api/timedtext?type=list&v={href}'
-            req = requests.get(url, timeout=(connect_timeout, read_timeout))
+            req = requests.get(url, timeout=time_out)
             if not req.ok:
                 raise ValueError(f'Unexpected status code: {req.status_code}')
             try:
@@ -201,7 +200,7 @@ class YoutubeScraping:
 
     def __make_script(self, name: str, video_instance: Video):
         url = f"http://video.google.com/timedtext?lang=id&name={name}&v={video_instance.video_href}"
-        req = requests.get(url, timeout=(connect_timeout, read_timeout))
+        req = requests.get(url, timeout=time_out)
         if not req.ok:
             raise ValueError(f'Unexpected status code: {req.status_code}')
         root = ElementTree.fromstring(req.content)
@@ -270,7 +269,7 @@ class YoutubeScraping:
             start_time, end_time = self.__get_start_end(r)
             caption = Caption(video_href=video_instance, index=index, start_time=start_time,
                               end_time=end_time, text=text,
-                              word_pairs=dict(zip_longest(words, imi, fillvalue='')))
+                              words=words, meanings=imi)
             script.append(caption)
             index = index + 1
 
@@ -300,8 +299,12 @@ class YoutubeScraping:
         url = f'https://njjn.weblio.jp/content/{w}'
 
         time.sleep(0) if settings_py.DEBUG_CELERY else time.sleep(0.3)
-        r = requests.get(url, timeout=(connect_timeout, read_timeout))
-        r.raise_for_status()
+        r = requests.Response
+        try:
+            r = requests.get(url, timeout=time_out)
+        except TimeoutError as error:
+            print(error)
+            pass
         soup = BeautifulSoup(r.text, 'lxml')
 
         elements_crosslink = soup.find_all(class_="crosslink")
@@ -498,7 +501,7 @@ class YoutubeScraping:
 
     def __get_duration(self, href):
         url = f"https://www.googleapis.com/youtube/v3/videos?id={href}&key={self.Y_KEY}&part=contentDetails"
-        response = urllib.request.urlopen(url, timeout=connect_timeout).read()
+        response = urllib.request.urlopen(url, timeout=3.0).read()
         if not response:
             raise ValueError(f'Unexpected status code: {response.status_code}')
         data = json.loads(response)

@@ -72,5 +72,8 @@ class RootQuery(graphene.ObjectType):
     def resolve_caption_list(self, info, **kwargs):
         href = kwargs.get('video_href')
         if href:
-            return Caption.objects.order_by('index').filter(video_href=href)
-        return None
+            result = Caption.objects.order_by('index').filter(video_href=href)
+            return result
+        href = Video.objects.first().video_href
+        result = Caption.objects.order_by('index').filter(video_href=href)
+        return result

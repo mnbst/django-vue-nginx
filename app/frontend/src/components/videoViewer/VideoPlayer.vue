@@ -1,23 +1,129 @@
 <template>
     <div class="videoPlayer">
         <div class="container">
+            <h3 class="col-lg-8 col-xl-12">{{video.videoTitle}}</h3>
             <div class="row">
-                <div class="col-lg-7 col-xl-12">
-                    <div class="video-container">
-                        <h3>{{video.videoTitle}}</h3>
-                        <youtube class="video-player" :video-id="video.videoHref" @playing="playing" @paused="paused"
-                                 @ended="ended"/>
-                        <div id="subtitle_area" class="col-md-12">
-                            <div class="panel panel-default">
-                                <div id="subtitle_block"></div>
+                <div class="col-lg-8">
+                    <div class="row">
+                        <div class="col-lg-6 col-xl-12">
+                            <div class="video-container">
+                                <youtube class="video-player" :video-id="video.videoHref"
+                                         width="380"
+                                         height="300"
+                                         @playing="playing"
+                                         @paused="paused"
+                                         @ended="ended"/>
                             </div>
                         </div>
-                        <div id="subtitle_detail_area"></div>
+                        <div class="col-lg-6 col-xl-12">
+                            <v-list class="overflow-y-auto font-weight-black">
+                                <ul v-for="caption in captionList" :key="caption.index">
+                                    {{caption.index}}: {{caption.text}}
+                                </ul>
+                            </v-list>
+                        </div>
                     </div>
                     <div class="row">
+                        <v-card class="col-12" color="white align-center">
+                            <div style="padding-top: 0;">
+                                <v-col cols="12" sm="12">
+                                    <v-layout row wrap>
+                                        <v-col cols="6">
+                                            <h4>word</h4>
+                                            <v-flex v-for="(word,word_index) in captionList[index].words"
+                                                    :key="word_index">
+                                                <v-text-field class="my-n6 ml-3"
+                                                       v-model="captionList[index].words[word_index]"/>
+                                            </v-flex>
+                                            <v-btn icon bottom color="grey lighten-1"
+                                                   v-on:click="add_form(captionList[index])">
+                                                <v-icon dark>add_circle</v-icon>
+                                            </v-btn>
+                                            <v-btn
+                                                    icon
+                                                    bottom
+                                                    color="grey lighten-1"
+                                                    v-on:click="remove_form(captionList[index])"
+                                                    v-if="captionList[index].meanings.length>1"
+                                            >
+                                                <v-icon dark>remove_circle</v-icon>
+                                            </v-btn>
+                                        </v-col>
+                                        <v-col cols="6">
+                                            <h4>meaning</h4>
+                                            <v-flex v-for="(_,word_imi_index) in captionList[index].meanings"
+                                                    :key="word_imi_index">
+                                                <v-text-field
+                                                        class="my-n6 ml-3"
+                                                        v-model="captionList[index].meanings[word_imi_index]"/>
+                                            </v-flex>
+                                            <v-btn
+                                                    icon
+                                                    bottom
+                                                    color="grey lighten-1"
+                                                    v-on:click="add_form(captionList[index])"
+                                            >
+                                                <v-icon dark>add_circle</v-icon>
+                                            </v-btn>
+                                            <v-btn
+                                                    icon
+                                                    bottom
+                                                    color="grey lighten-1"
+                                                    v-on:click="remove_form(captionList[index])"
+                                                    v-if="captionList[index].length>0"
+                                            >
+                                                <v-icon dark>remove_circle</v-icon>
+                                            </v-btn>
+                                        </v-col>
+                                    </v-layout>
+                                </v-col>
+                                <v-col cols="12" sm="12">
+                                    <div class="row">
+                                        <h3>index</h3>
+                                        <v-col cols="3">
+                                            <v-text-field
+                                                    class="my-n5 mb-n7 pa-0"
+                                                    min="0"
+                                                    step="1"
+                                                    type="number"
+                                                    v-model="captionList[index].index">
+                                            </v-text-field>
+                                        </v-col>
+                                    </div>
+                                </v-col>
+                                <v-col cols="12" sm="12">
+                                    <div class="row">
+                                        <h3>start_time</h3>
+                                        <v-col cols="3">
+                                            <v-text-field
+                                                    class="my-n5 mb-n7 pa-0"
+                                                    min="0"
+                                                    step="1"
+                                                    type="number"
+                                                    v-model="captionList[index].startTime"
+                                            ></v-text-field>
+                                        </v-col>
+                                    </div>
+                                </v-col>
+                                <v-col cols="12" sm="12">
+                                    <div class="row">
+                                        <h3>end_time</h3>
+                                        <v-col cols="3">
+                                            <v-text-field
+                                                    class="my-n5 mb-n7 pa-0"
+                                                    min="0"
+                                                    step="1"
+                                                    type="number"
+                                                    v-model="captionList[index].endTime"
+                                            ></v-text-field>
+                                        </v-col>
+                                    </div>
+                                </v-col>
+                            </div>
+                        </v-card>
                     </div>
                 </div>
-                <div class="col-lg-5 col-xl-12">
+                <div class="col-lg-4 col-xl-12">
                     <div class="video-list">
                         <div :key="video.id" v-for="video in videoList" class="thumbnail">
                             <a v-on:click="chooseVideo(video)" class="thumbnail-img">
@@ -38,9 +144,7 @@
 </template>
 
 <script>
-    // import virtualList from "vue-virtual-scroll-list";
-    // import {CAPTION} from "../../graphql/query/query.caption";
-    import {VIDEO, VIDEO_LIST} from "../../graphql/query/query.video";
+    import {VIDEO_CAPTION_SET} from "../../graphql/query/query.video";
 
     export default {
         name: 'VideoPlayer',
@@ -48,20 +152,25 @@
             return {
                 video: {},
                 videoList: [],
-                captions: [],
+                captionList: [],
+                index: 0
             }
         },
         apollo: {
-            videoList: VIDEO_LIST,
-            video: VIDEO,
-            // captions: CAPTION,
+            videoList: {
+                query: VIDEO_CAPTION_SET,
+                fetchPolicy: 'no-cache',
+            },
+            video: VIDEO_CAPTION_SET,
+            captionList: VIDEO_CAPTION_SET,
         },
-        components: {
-            // "virtual-list": virtualList
-        },
+        components: {},
         methods: {
             chooseVideo: function (video) {
                 this.$apollo.queries.video.refetch({
+                    videoHref: video.videoHref
+                })
+                this.$apollo.queries.captionList.refetch({
                     videoHref: video.videoHref
                 })
             },
@@ -79,6 +188,17 @@
 </script>
 
 <style scoped>
+    .video-player {
+        width: 100%;
+    }
+
+    .overflow-y-auto {
+        border: 1px solid;
+        height: 100%;
+        max-height: 300px;
+        width: 100%;
+    }
+
     .thumbnail {
         display: flex;
     }
@@ -106,10 +226,4 @@
         justify-content: space-between;
     }
 
-    button {
-        background: #D0021B;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-    }
 </style>
