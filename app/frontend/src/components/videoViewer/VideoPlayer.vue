@@ -16,11 +16,14 @@
                             </div>
                         </div>
                         <div class="col-lg-6 col-xl-12">
-                            <v-list class="overflow-y-auto font-weight-black">
-                                <ul v-for="caption in captionList" :key="caption.index">
-                                    {{caption.index}}: {{caption.text}}
-                                </ul>
-                            </v-list>
+                            <virtual-list class="virtual-list pl-4 font-weight-black" :size="20" :remain="15" :start="index-3">
+                                <div v-for="caption in captionList" :key="caption.index">
+                                    <div v-if="caption.index===index" class="blue--text">
+                                        {{caption.index}}: {{caption.text}}
+                                    </div>
+                                    <div v-else>{{caption.index}}: {{caption.text}}</div>
+                                </div>
+                            </virtual-list>
                         </div>
                     </div>
                     <div class="row">
@@ -33,7 +36,7 @@
                                             <v-flex v-for="(word,word_index) in captionList[index].words"
                                                     :key="word_index">
                                                 <v-text-field class="my-n6 ml-3"
-                                                       v-model="captionList[index].words[word_index]"/>
+                                                              v-model="captionList[index].words[word_index]"/>
                                             </v-flex>
                                             <v-btn icon bottom color="grey lighten-1"
                                                    v-on:click="add_form(captionList[index])">
@@ -145,6 +148,9 @@
 
 <script>
     import {VIDEO_CAPTION_SET} from "../../graphql/query/query.video";
+    import virtualList from "vue-virtual-scroll-list";
+
+    let timer;
 
     export default {
         name: 'VideoPlayer',
@@ -156,6 +162,9 @@
                 index: 0
             }
         },
+        components: {
+            "virtual-list": virtualList
+        },
         apollo: {
             videoList: {
                 query: VIDEO_CAPTION_SET,
@@ -164,7 +173,6 @@
             video: VIDEO_CAPTION_SET,
             captionList: VIDEO_CAPTION_SET,
         },
-        components: {},
         methods: {
             chooseVideo: function (video) {
                 this.$apollo.queries.video.refetch({
@@ -174,14 +182,42 @@
                     videoHref: video.videoHref
                 })
             },
-            playing: (event) => {
-                console.log(event.getCurrentTime());
+            playing: function (event) {
+                clearTimeout(timer)
+                let _this = this
+                const sequenceSub = function (beforeEndTime, index) {
+                    let endTime = _this.captionList[index].endTime;
+                    let timeout = endTime - beforeEndTime;
+                    _this.index = index
+                    timer = setTimeout(function () {
+                        sequenceSub(endTime, index + 1);
+                    }, timeout);
+                };
+                const whichSub = function (currentTime, captionList) {
+                    let id = 0;
+                    let time = captionList[id]["endTime"];
+                    while (time < currentTime) {
+                        id += 1;
+                        time = captionList[id]["endTime"];
+                    }
+                    return id
+                };
+                const currentTime = event.getCurrentTime() * 1000;
+                const captionList = this.captionList;
+                const index = whichSub(currentTime, captionList)
+                this.index = index
+                let stopTime = captionList[index].endTime;
+                let timeoutMillsec = stopTime - currentTime;
+
+                timer = setTimeout(function () {
+                    sequenceSub(stopTime, index + 1);
+                }, timeoutMillsec);
             },
-            paused: (event) => {
-                console.log(event.getCurrentTime())
+            paused: function () {
+                clearTimeout(timer)
             },
-            ended: (event) => {
-                console.log(event.getCurrentTime())
+            ended: () => {
+                clearTimeout(timer)
             }
         }
     }
@@ -192,11 +228,9 @@
         width: 100%;
     }
 
-    .overflow-y-auto {
+    .virtual-list {
         border: 1px solid;
-        height: 100%;
-        max-height: 300px;
-        width: 100%;
+        border-radius: 4px
     }
 
     .thumbnail {
