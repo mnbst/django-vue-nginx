@@ -5,13 +5,13 @@ from celery.result import AsyncResult
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 
+from .scraping.tasks import get_list
 from ..settings import END_MESSAGE
-from .scraping.tasks import scraping
 
 
-class FetchConsumer(AsyncWebsocketConsumer):
+class GetVideoListConsumer(AsyncWebsocketConsumer):
     result = AsyncResult
-    group_name = "scraping"
+    group_name = "get_video_list"
 
     async def connect(self):
         print("connected")
@@ -20,6 +20,11 @@ class FetchConsumer(AsyncWebsocketConsumer):
             channel=self.channel_name
         )
         await self.accept()
+
+    async def receive(self, text_data=None, bytes_data=None):
+        print("receive", text_data)
+        settings = json.loads(text_data)
+        self.result = get_list.delay(settings=settings)
 
     async def disconnect(self, close_code):
         print('disconnect', close_code)
@@ -30,22 +35,21 @@ class FetchConsumer(AsyncWebsocketConsumer):
         )
         raise StopConsumer()
 
-    async def receive(self, text_data=None, bytes_data=None):
-        print("receive", text_data)
-        await self.send(text_data='starting...')
-        settings = json.loads(text_data)
-        self.result = scraping.delay(settings=settings)
+    async def get_video_list_messages(self, event):
+        if 'text' in event:
+            text = event["text"]
+            if text == END_MESSAGE:
+                await self.send(close=True)
+                return
+            await self.send(text_data=text)
+        if 'data' in event:
+            data = event['data']
+            await self.send(data)
 
-    async def scraping_messages(self, event):
-        text = event["text"]
-        await self.send(text_data=text)
-        if text == END_MESSAGE:
-            await self.send(close=True)
 
-
-class DebugFetchConsumer(WebsocketConsumer):
+class DebugGetVideoListConsumer(WebsocketConsumer):
     result = AsyncResult
-    group_name = "scraping"
+    group_name = "get_video_list"
 
     def connect(self):
         print("connected")
@@ -68,4 +72,10 @@ class DebugFetchConsumer(WebsocketConsumer):
         print("receive", text_data)
         self.send(text_data='starting...')
         settings = json.loads(text_data)
-        self.result = scraping.delay(settings=settings)
+        self.result = get_list.delay(settings=settings)
+
+    def get_video_list_messages(self, event):
+        text = event["text"]
+        self.send(text_data=text)
+        if text == END_MESSAGE:
+            self.send(close=True)

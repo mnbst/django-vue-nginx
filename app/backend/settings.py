@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get("DEBUG", default=0))
-DEBUG_CELERY = False
+DEBUG_CELERY = 0
 
 END_MESSAGE = 'all done😀'
 
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'channels_redis',
     'webpack_loader',
     'graphene_django',
+    'rest_framework',
 ]
 
 STATIC_URL = '/static/'

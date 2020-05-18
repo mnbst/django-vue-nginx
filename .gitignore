@@ -5,3 +5,4 @@ get_caption_app
 postgres_data
 posts-data.json
 .idea
+memo.text

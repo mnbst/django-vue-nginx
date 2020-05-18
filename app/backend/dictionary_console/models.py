@@ -9,6 +9,10 @@ class Word(models.Model):
     word_ini = models.CharField(max_length=1, db_index=True)
     word = models.CharField(max_length=50, unique=True)
     meaning = models.CharField(max_length=200, default='')
+    ng = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["word"]
 
     def __str__(self):
         return self.word
@@ -21,36 +25,55 @@ class Video(models.Model):
     video_title = models.CharField(max_length=100)
     video_genre = ArrayField(models.CharField(max_length=50))
     youtubeID = models.CharField(max_length=50)
-    video_upload_date = models.DateTimeField()
+    published_at = models.CharField(max_length=50, default='')
+    want = models.BooleanField(default=True)
+    excepted = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-published_at"]
 
     def __str__(self):
         return self.video_href
+
+
+# class WordAppearance(models.Model):
+#     word = models.ForeignKey(Word, to_field='id', on_delete=models.CASCADE, db_index=True)
+#     video_caption = models.ForeignKey(Video, to_field='id', on_delete=models.CASCADE, db_index=True)
+#     appearance = ArrayField(models.CharField(max_length=10))
+#
+#     def convert_objects(self):
+#         word_appearances = self.objects.filter(word=self.word)
+#         return list(map(lambda x: {x.video_href: x.appearance}, word_appearances))
+#
+#     def __str__(self):
+#         return self.word
 
 
 class Caption(models.Model):
     index = models.PositiveIntegerField(default=0)
     start_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
     end_time = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(9999999999)])
-    text = models.CharField(max_length=500)
-    words = ArrayField(models.CharField(max_length=50))
-    meanings = ArrayField(models.CharField(max_length=50))
-    video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE, db_index=True)
+    text = models.CharField(max_length=255)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, db_index=True, null=True)
+    words = models.ManyToManyField(Word, through='CaptionWord', blank=True)
+
+    class Meta:
+        ordering = ["index"]
 
     def __str__(self):
         return str(self.text)
 
 
-class WordAppearance(models.Model):
-    word = models.ForeignKey(Word, to_field='word', on_delete=models.CASCADE, db_index=True)
-    video_href = models.ForeignKey(Video, to_field='video_href', on_delete=models.CASCADE, default='')
-    appearance = ArrayField(models.IntegerField(default=0))
+class CaptionWord(models.Model):
+    caption = models.ForeignKey(Caption, on_delete=models.CASCADE)
+    word = models.ForeignKey(Word, on_delete=models.CASCADE)
+    order = models.IntegerField(default=0)
 
-    def convert_objects(self):
-        word_appearances = self.objects.filter(word=self.word)
-        return list(map(lambda x: {x.video_href: x.appearance}, word_appearances))
+    class Meta:
+        ordering = ["order"]
 
     def __str__(self):
-        return self.word
+        return str(self)
 
 
 class FetchSetting(models.Model):

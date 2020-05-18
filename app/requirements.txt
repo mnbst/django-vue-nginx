@@ -32,7 +32,7 @@ uritemplate
 urllib3==1.25.8
 channels
 channels_redis
-# ptvsd==4.3.2
+djangorestframework
 google-api-python-client==1.8.0
 lxml==4.5.0
 celery

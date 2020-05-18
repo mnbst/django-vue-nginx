@@ -3,12 +3,14 @@ from __future__ import absolute_import, unicode_literals
 import json
 import os
 import re
+import socket
 import time
 import urllib.request
 import xml.etree.ElementTree as ElementTree
 from html import unescape
 from typing import Optional
 
+import OpenSSL
 import django
 import isodate
 import nltk
@@ -17,12 +19,12 @@ from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
 from celery import shared_task
 from channels.layers import get_channel_layer
-from django.db import transaction, Error
 from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 
 from ... import settings as settings_py
+from ...dictionary_console.serializer import VideoSerializer
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 django.setup()
@@ -32,9 +34,15 @@ time_out = (5.0, 30.0)
 
 
 @shared_task
+def get_list(settings: dict):
+    youtube_scraping = YoutubeScraping(settings=settings)
+    youtube_scraping.get_video_list()
+
+
+@shared_task
 def scraping(settings: dict):
     youtube_scraping = YoutubeScraping(settings=settings)
-    youtube_scraping.youtube_search()
+    # youtube_scraping.youtube_search()
 
 
 class MemoryCache(Cache):
@@ -81,21 +89,21 @@ class YoutubeScraping:
         self.settings = settings
         self.channel_layer = get_channel_layer()
 
-    def __send_to_websocket(self, message: str):
-        if settings_py.DEBUG_CELERY:
-            print(message)
+    def __send_to_websocket(self, group_name: str, **kwargs):
+        data = kwargs.get('data', None)
+        message = kwargs.get('message', None)
+        if data:
+            video = json.dumps(VideoSerializer(data).data)
+            async_to_sync(self.channel_layer.group_send)(group_name, {
+                "type": "get.video.list.messages",
+                "data": video})
         else:
-            async_to_sync(self.channel_layer.group_send)("scraping", {
-                "type": "scraping.messages",
+            async_to_sync(self.channel_layer.group_send)(group_name, {
+                "type": "get.video.list.messages",
                 "text": message,
             })
 
-    def youtube_search(self):
-        self.__send_to_websocket('connecting...')
-        Video.objects.filter(
-            video_href__in=self.settings['videoToDelete'] + self.settings[
-                'exceptedHref'] + self.EXCEPT_VIDEO).delete()
-
+    def get_video_list(self):
         youtube = build(self.YOUTUBE_API_SERVICE_NAME,
                         self.YOUTUBE_API_VERSION,
                         developerKey=self.Y_KEY, cache=MemoryCache())
@@ -115,11 +123,12 @@ class YoutubeScraping:
         except HttpError as e:
             json_str_data = e.content.decode()
             json_data = json.loads(json_str_data)
-            self.__send_to_websocket('ERROR❗... -> reason: ' + json_data['error']['errors'][0]['reason'])
+            self.__send_to_websocket(message='ERROR❗... -> reason: ' + json_data['error']['errors'][0]['reason'],
+                                     group_name='get_video_list')
             return
 
         page_token = search_response.get("nextPageToken", str)
-        self.__fill_in_db(response=search_response)
+        self.__organize_list(response=search_response)
 
         for _ in range(0, self.settings['pageToCrawl'] - 1):
             search_response.update(youtube.search().list(
@@ -134,10 +143,10 @@ class YoutubeScraping:
                 videoCaption="closedCaption",
                 videoSyndicated="true").execute())
             page_token = search_response.get("nextPageToken", str)
-            self.__fill_in_db(response=search_response)
-        self.__send_to_websocket(settings_py.END_MESSAGE)
+            self.__organize_list(response=search_response)
+        # self.__send_to_websocket(settings_py.END_MESSAGE, group_name="get_video_list")
 
-    def __fill_in_db(self, response):
+    def __organize_list(self, response):
         for search_result in response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
                 href = search_result["id"]["videoId"]
@@ -146,8 +155,6 @@ class YoutubeScraping:
             else:
                 continue
             video_exists = Video.objects.filter(video_href=href).exists()
-            if not video_exists:
-                self.__send_to_websocket(f'getting video id: {href}')
 
             if video_exists and href not in self.settings['videoToRenewal']:
                 continue
@@ -172,36 +179,40 @@ class YoutubeScraping:
             # 字幕言語の数を指定してる
             if len(lang_codes) < self.settings['languageLimit'] + 1 and 'id' in lang_codes:
                 name = r.attrib.get('name')
-                self.__send_to_websocket('VIDEO TITLE: ' + search_result['snippet']['title'])
                 title = search_result["snippet"]["title"]
                 title = unescape(title)
                 video = Video(video_href=href, video_img=search_result["snippet"]["thumbnails"]["medium"]["url"],
                               video_time=self.__get_duration(href), video_title=title, video_genre=[],
                               youtubeID=search_result["snippet"]["channelId"],
-                              video_upload_date=search_result["snippet"]["publishedAt"])
-                script, elements = self.__make_script(name, video_instance=video)
-                if script is None:
-                    return True
-                elif len(script) < self.settings['minimumSentence']:
-                    self.__send_to_websocket(f'"{title}" has short sentences❗️')
-                    continue
-                word_appearances = []
-                for element in elements:
-                    word_instance = Word.objects.get(word=element)
-                    word_appearances.append(
-                        WordAppearance(word=word_instance, video_href=video, appearance=elements[element]))
-                with transaction.atomic():
-                    try:
-                        video.save()
-                        WordAppearance.objects.bulk_create(word_appearances)
-                        Caption.objects.bulk_create(script)
-                    except Error as e:
-                        self.__send_to_websocket(str(e))
+                              published_at=search_result["snippet"]["publishedAt"],
+                              want=True, excepted=False)
+                video.save()
+                self.__send_to_websocket(data=video, group_name='get_video_list')
+        return
+        # script, elements = self.__make_script(name, video_instance=video)
+        # if script is None:
+        #     return True
+        # elif len(script) < self.settings['minimumSentence']:
+        #     self.__send_to_websocket(f'"{title}" has short sentences❗️')
+        #     continue
+        # word_appearances = []
+        # for element in elements:
+        #     word_instance = Word.objects.get(word=element)
+        #     word_appearances.append(
+        #         WordAppearance(word=word_instance, video_href=video, appearance=elements[element]))
+        # with transaction.atomic():
+        #     try:
+        #         video.save()
+        #         WordAppearance.objects.bulk_create(word_appearances)
+        #         Caption.objects.bulk_create(script)
+        #     except Error as e:
+        #         self.__send_to_websocket(str(e))
 
     def __make_script(self, name: str, video_instance: Video):
         url = f"http://video.google.com/timedtext?lang=id&name={name}&v={video_instance.video_href}"
         req = requests.get(url, timeout=time_out)
         if not req.ok:
+            self.__send_to_websocket('error occurs')
             raise ValueError(f'Unexpected status code: {req.status_code}')
         root = ElementTree.fromstring(req.content)
 
@@ -299,12 +310,14 @@ class YoutubeScraping:
         url = f'https://njjn.weblio.jp/content/{w}'
 
         time.sleep(0) if settings_py.DEBUG_CELERY else time.sleep(0.3)
-        r = requests.Response
-        try:
-            r = requests.get(url, timeout=time_out)
-        except TimeoutError as error:
-            print(error)
-            pass
+        while True:
+            try:
+                r = requests.get(url, timeout=time_out)
+                break
+            except OpenSSL.SSL.WantReadError:
+                time.sleep(0.1)
+            except socket.timeout:
+                time.sleep(0.1)
         soup = BeautifulSoup(r.text, 'lxml')
 
         elements_crosslink = soup.find_all(class_="crosslink")

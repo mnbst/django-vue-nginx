@@ -2,6 +2,7 @@ import graphene
 
 from ....dictionary_console.models import *
 
+
 class SettingsInput(graphene.InputObjectType):
     id = graphene.Int()
     authority = graphene.String()
@@ -29,24 +30,13 @@ class CreateSettings(graphene.Mutation):
         settings_input = SettingsInput(required=True)
 
     def mutate(self, info, settings_input):
-        settings = FetchSetting(id=settings_input['id'],
-                                authority=settings_input['authority'],
-                                excepted_href=settings_input['excepted_href'],
-                                page_to_crawl=settings_input['page_to_crawl'],
-                                language_limit=settings_input['language_limit'],
-                                minimum_sentence=settings_input['minimum_sentence'],
-                                video_per_page=settings_input['video_per_page'],
-                                video_to_delete=settings_input['video_to_delete'],
-                                video_to_renewal=settings_input['video_to_renewal'],
-                                )
+        settings = FetchSetting.objects.get(id=settings_input['id'])
+        settings.excepted_href = settings_input.excepted_href
+        settings.page_to_crawl = settings_input.page_to_crawl
+        settings.language_limit = settings_input.language_limit
+        settings.minimum_sentence = settings_input.minimum_sentence
+        settings.video_per_page = settings_input.video_per_page
+        settings.video_to_delete = settings_input.video_to_delete
+        settings.video_to_renewal = settings_input.video_to_renewal
         settings.save()
-
-        return CreateSettings(id=settings.id,
-                              authority=settings.authority,
-                              excepted_href=settings.excepted_href,
-                              page_to_crawl=settings.page_to_crawl,
-                              language_limit=settings.language_limit,
-                              minimum_sentence=settings.minimum_sentence,
-                              video_per_page=settings.video_per_page,
-                              video_to_delete=settings.video_to_delete,
-                              video_to_renewal=settings.video_to_renewal, )
+        return settings

@@ -1,7 +1,7 @@
 <template>
     <div class="videoPlayer">
         <div class="container">
-            <h3 class="col-lg-8 col-xl-12">{{video.videoTitle}}</h3>
+            <h3 class="col-lg-8 col-xl-12">{{video.videoTitle}} : {{video.videoHref}}</h3>
             <div class="row">
                 <div class="col-lg-8">
                     <div class="row">
@@ -12,16 +12,20 @@
                                          height="300"
                                          @playing="playing"
                                          @paused="paused"
-                                         @ended="ended"/>
+                                         @ended="ended"
+                                         ref="player"/>
                             </div>
                         </div>
                         <div class="col-lg-6 col-xl-12">
-                            <virtual-list class="virtual-list pl-4 font-weight-black" :size="20" :remain="15" :start="index-3">
+                            <virtual-list class="virtual-list pl-4 font-weight-black" :size="30" :remain="10"
+                                          :start="index-3">
                                 <div v-for="caption in captionList" :key="caption.index">
                                     <div v-if="caption.index===index" class="blue--text">
                                         {{caption.index}}: {{caption.text}}
                                     </div>
-                                    <div v-else>{{caption.index}}: {{caption.text}}</div>
+                                    <a v-else class="black--text" @click="jumpToIndex(caption.index)">{{caption.index}}:
+                                        {{caption.text}}
+                                    </a>
                                 </div>
                             </virtual-list>
                         </div>
@@ -39,22 +43,22 @@
                                                               v-model="captionList[index].words[word_index]"/>
                                             </v-flex>
                                             <v-btn icon bottom color="grey lighten-1"
-                                                   v-on:click="add_form(captionList[index])">
+                                                   v-on:click="add_form(captionList[index].words)">
                                                 <v-icon dark>add_circle</v-icon>
                                             </v-btn>
                                             <v-btn
                                                     icon
                                                     bottom
                                                     color="grey lighten-1"
-                                                    v-on:click="remove_form(captionList[index])"
-                                                    v-if="captionList[index].meanings.length>1"
+                                                    v-on:click="remove_form(captionList[index].words)"
+                                                    v-if="captionList[index].words.length>1"
                                             >
                                                 <v-icon dark>remove_circle</v-icon>
                                             </v-btn>
                                         </v-col>
                                         <v-col cols="6">
                                             <h4>meaning</h4>
-                                            <v-flex v-for="(_,word_imi_index) in captionList[index].meanings"
+                                            <v-flex v-for="(meaning,word_imi_index) in captionList[index].meanings"
                                                     :key="word_imi_index">
                                                 <v-text-field
                                                         class="my-n6 ml-3"
@@ -64,7 +68,7 @@
                                                     icon
                                                     bottom
                                                     color="grey lighten-1"
-                                                    v-on:click="add_form(captionList[index])"
+                                                    v-on:click="add_form(captionList[index].meanings)"
                                             >
                                                 <v-icon dark>add_circle</v-icon>
                                             </v-btn>
@@ -72,8 +76,8 @@
                                                     icon
                                                     bottom
                                                     color="grey lighten-1"
-                                                    v-on:click="remove_form(captionList[index])"
-                                                    v-if="captionList[index].length>0"
+                                                    v-on:click="remove_form(captionList[index].meanings)"
+                                                    v-if="captionList[index].meanings.length>0"
                                             >
                                                 <v-icon dark>remove_circle</v-icon>
                                             </v-btn>
@@ -151,6 +155,7 @@
     import virtualList from "vue-virtual-scroll-list";
 
     let timer;
+    let oneLine = false;
 
     export default {
         name: 'VideoPlayer',
@@ -160,6 +165,11 @@
                 videoList: [],
                 captionList: [],
                 index: 0
+            }
+        },
+        computed: {
+            player() {
+                return this.$refs.player.player
             }
         },
         components: {
@@ -174,6 +184,12 @@
             captionList: VIDEO_CAPTION_SET,
         },
         methods: {
+            add_form(form) {
+                form.push("");
+            },
+            remove_form(form) {
+                form.splice(-1, 1);
+            },
             chooseVideo: function (video) {
                 this.$apollo.queries.video.refetch({
                     videoHref: video.videoHref
@@ -181,6 +197,14 @@
                 this.$apollo.queries.captionList.refetch({
                     videoHref: video.videoHref
                 })
+            },
+            jumpToIndex: function (index) {
+                this.index = index
+                const caption = this.captionList.find(element => element.index === index)
+                this.player.pauseVideo()
+                this.player.seekTo(caption.startTime / 1000)
+                oneLine = true
+                this.player.playVideo()
             },
             playing: function (event) {
                 clearTimeout(timer)
@@ -203,15 +227,23 @@
                     return id
                 };
                 const currentTime = event.getCurrentTime() * 1000;
-                const captionList = this.captionList;
-                const index = whichSub(currentTime, captionList)
-                this.index = index
-                let stopTime = captionList[index].endTime;
-                let timeoutMillsec = stopTime - currentTime;
-
-                timer = setTimeout(function () {
-                    sequenceSub(stopTime, index + 1);
-                }, timeoutMillsec);
+                if (oneLine === false) {
+                    const captionList = this.captionList;
+                    const index = whichSub(currentTime, captionList)
+                    this.index = index
+                    const stopTime = captionList[index].endTime;
+                    const timeOut = stopTime - currentTime;
+                    timer = setTimeout(function () {
+                        sequenceSub(stopTime, index + 1);
+                    }, timeOut);
+                } else {
+                    const stopTime = this.captionList[this.index].endTime;
+                    const timeOut = stopTime - currentTime;
+                    timer = setTimeout(function () {
+                        _this.player.pauseVideo();
+                    }, timeOut);
+                    oneLine = false
+                }
             },
             paused: function () {
                 clearTimeout(timer)

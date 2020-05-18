@@ -61,7 +61,7 @@ class RootQuery(graphene.ObjectType):
         elif genre:
             return Video.objects.filter(video_genre__in=genre)
         else:
-            return Video.objects.filter()[:50].all()
+            return Video.objects.all()
 
     def resolve_settings(self, info, **kwargs):
         authority = kwargs.get('authority')

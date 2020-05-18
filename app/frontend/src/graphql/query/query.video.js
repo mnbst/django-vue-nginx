@@ -12,10 +12,24 @@ export const VIDEO_OPTIMISTIC = {
         youtubeID: 'loading...',
     },
 };
+export const VIDEO_LIST = gql`query{
+  videoList{
+    id
+    videoTitle
+    videoImg
+    videoTime
+    videoHref
+    videoGenre
+    youtubeID
+    publishedAt
+    want
+    excepted
+  }
+}`;
 
 export const VIDEO_CAPTION_SET = gql`query(
         $videoHref:String=""
-    ){ 
+    ){
     video(
         videoHref:$videoHref
     ) {

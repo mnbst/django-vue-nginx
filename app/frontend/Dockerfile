@@ -8,4 +8,4 @@ WORKDIR /usr/src/app/frontend
 # copy project
 COPY . .
 
-CMD [ "npm","run","serve" ]
+CMD [ "npm","run","serve"]

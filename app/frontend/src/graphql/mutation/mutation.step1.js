@@ -34,3 +34,38 @@ export const CREATE_SETTINGS = gql`
     videoToDelete
     videoToRenewal}
   }`;
+
+export const EXCEPT_VIDEO = gql`
+mutation(
+$videoHref:String!
+$userId:Int!
+){
+exceptVideo(videoInput:{
+videoHref:$videoHref
+userId:$userId
+}){
+videoList{
+    id
+    videoTitle
+    videoImg
+    videoTime
+    videoHref
+    videoGenre
+    youtubeID
+    publishedAt
+    want
+    excepted
+    }
+settings {
+    id
+    authority
+    exceptedHref
+    pageToCrawl
+    videoPerPage
+    videoToDelete
+    videoToRenewal
+    minimumSentence
+    languageLimit
+    }
+}
+}`;
