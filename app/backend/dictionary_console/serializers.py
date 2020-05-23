@@ -10,7 +10,8 @@ class VideoSerializer(serializers.ModelSerializer):
     videoTitle = serializers.CharField(source='video_title')
     videoGenre = serializers.ListField(child=serializers.CharField(), source='video_genre')
     publishedAt = serializers.CharField(source='published_at')
+    hasCaption = serializers.BooleanField(source='has_caption')
 
     class Meta:
         model = Video
-        fields = ('videoHref', 'videoImg', 'videoTime', 'videoTitle', 'videoGenre', 'publishedAt', 'want', 'excepted')
+        fields = ('videoHref', 'videoImg', 'videoTime', 'videoTitle', 'videoGenre', 'publishedAt', 'want', 'hasCaption')

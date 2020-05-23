@@ -3,7 +3,7 @@
         <div class="container--fluid">
             <v-row justify="center">
                 <v-icon class="mr-1">keyboard_arrow_left</v-icon>
-                <h2 class="my-2">動画リスト生成</h2>
+                <h2 class="my-2">動画リスト作成</h2>
                 <v-icon class="ml-1">keyboard_arrow_right</v-icon>
             </v-row>
             <div class="row">
@@ -15,7 +15,7 @@
 
                                  ref="player"/>
                     </div>
-                    <div v-if="video!==null">
+                    <div v-if="video">
                         <div>
                             <h3>TITLE: {{video.videoTitle}}</h3>
                             <h4 class="pt-5">ID: {{video.videoHref}}</h4>
@@ -44,9 +44,13 @@
                     </div>
                 </div>
                 <div class="col-lg-4 col-xl-12 ml-n7">
-                    <virtual-list v-if="videoList" :size="26" :remain="25">
+                    <v-row>
+                        <v-checkbox class="ml-7 my-n3" v-model="checkbox" :label="`全選択`"
+                                    @change="checkAll($event)"></v-checkbox>
+                    </v-row>
+                    <virtual-list v-if="videoList" :size="26" :remain="24">
                         <ul v-for="item in videoList" :key="item.id">
-                            <div class="row">
+                            <div v-if="!item.hasCaption" class="row">
                                 <v-checkbox class="mx-1 left" v-model="item.want"></v-checkbox>
                                 <img class="col-4  mx-n5" @click="setVideoId(item)"
                                      :src="item.videoImg"/>
@@ -146,7 +150,7 @@
                         </v-row>
                         <v-row>
                             <div class="col-6">
-                                <p class="text-center col-10">除外動画id</p>
+                                <p class="text-center col-10">NG動画id</p>
                             </div>
                             <div class="col-6">
                                 <div class="list-view mb-n5 pa-0">
@@ -205,6 +209,8 @@
     import {SETTING_OPTIMISTIC, VIDEO_SETTINGS} from "../../graphql/query/query.step1";
     import {CREATE_SETTINGS, EXCEPT_VIDEO} from "../../graphql/mutation/mutation.step1";
     import FetchData from "./FetchData";
+    import {VIDEO_OPTIMISTIC} from "../../graphql/query/query.video";
+    import {getVideoList} from "../../endpoints";
 
     const reg = new RegExp(/[!-/:-@[-`{-㿿]/g);
     const promise = (setting) => new Promise((resolve) => {
@@ -226,12 +232,6 @@
             resolve(setting)
         }
     });
-    const loc = window.location;
-    let wsStart = "ws://";
-    if (loc.protocol === "https:") {
-        wsStart = "wss://";
-    }
-    const endpoint1 = wsStart + loc.host + loc.pathname + "get_video_list";
     let socket = null;
     export default {
         name: "SelectableVideoList",
@@ -243,6 +243,7 @@
             saving: false,
             activate: false,
             dialog: false,
+            checkbox: 1
         }),
         computed: {
             player() {
@@ -270,7 +271,7 @@
                     this.videoHref = video.videoHref
                 }
             },
-            modify: function (settings) {
+            modify(settings) {
                 let _this = this
                 this.saving = true
                 promise(settings)
@@ -295,7 +296,7 @@
             },
             getList(setting) {
                 let _this = this;
-                socket = new WebSocket(endpoint1);
+                socket = new WebSocket(getVideoList);
                 socket.onmessage = function (message) {
                     _this.setVideoList(message);
                 };
@@ -328,7 +329,7 @@
                     this.videoList.push({id: this.videoList.length, text: message.data});
                 }
             },
-            addExceptedList: function (video) {
+            addExceptedList(video) {
                 const _this = this
                 this.dialog = false;
                 video.userId = Number(this.settings.id)
@@ -344,13 +345,21 @@
                         }
                         store.writeQuery({query: VIDEO_SETTINGS, data});
                     },
+                    optimisticResponse: VIDEO_OPTIMISTIC
                 }).then(() => {
                     _this.video = null
                     _this.videoHref = null
                 }).catch((error) => {
                     console.error(error)
                 });
-            }
+            },
+            checkAll(event) {
+                const videoList = this.videoList
+                const iterator = videoList.values()
+                for (const video of iterator) {
+                    video.want = event
+                }
+            },
         }
     }
 </script>

@@ -54,7 +54,7 @@ videoList{
     youtubeID
     publishedAt
     want
-    excepted
+    hasCaption
     }
 settings {
     id

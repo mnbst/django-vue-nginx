@@ -50,6 +50,6 @@ export const VIDEO_SETTINGS = gql`query{ settings(authority:"super") {
     youtubeID
     publishedAt
     want
-    excepted
+    hasCaption
   }
 }`;

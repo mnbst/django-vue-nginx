@@ -23,7 +23,7 @@ export const VIDEO_LIST = gql`query{
     youtubeID
     publishedAt
     want
-    excepted
+    hasCaption
   }
 }`;
 
