@@ -26,10 +26,37 @@ export const VIDEO_OPTIMISTIC = {
         videoTitle: 'loading...',
         videoGenre: ['loading...'],
         youtubeID: 'loading...',
-    },
-};
+        hasCaption:true,
+        captionSet: [{
+            index: 0,
+            startTime: 0,
+            endTime: 0,
+            text: "loading",
+            captionwordSet: [
+                {
+                    rootWord: {
+                        word: "",
+                        meaning: ""
+                    },
+                    fixedWord: "",
+                    fixedMeaning: ""
+                },
+                {
+                    rootWord: {
+                        word: "",
+                        meaning: ""
+                    },
+                    fixedWord: "",
+                    fixedMeaning: ""
+                },
+            ],
 
-export const VIDEO_SETTINGS = gql`query{ settings(authority:"super") {
+        }]
+    }
+}
+
+export const VIDEO_SETTINGS = gql`query ($videoHref: String=""){ 
+settings(authority:"super") {
     id
     authority
     exceptedHref
@@ -51,5 +78,26 @@ export const VIDEO_SETTINGS = gql`query{ settings(authority:"super") {
     publishedAt
     want
     hasCaption
+  }
+  video(videoHref: $videoHref) {
+    videoHref
+    videoImg
+    videoTime
+    videoTitle
+    videoGenre
+    captionSet {
+      index
+      startTime
+      endTime
+      text
+      captionwordSet {
+        rootWord {
+          word
+          meaning
+        }
+        fixedWord
+        fixedMeaning
+      }
+    }
   }
 }`;

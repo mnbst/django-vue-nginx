@@ -36,6 +36,24 @@ class Video(models.Model):
         return self.video_href
 
 
+class CaptionWord(models.Model):
+    caption = models.ForeignKey(
+        "Caption", on_delete=models.CASCADE, db_column="caption_id", db_index=True
+    )
+    root_word = models.ForeignKey(
+        Word, on_delete=models.CASCADE, null=True, blank=True, db_column="word_id"
+    )
+    order = models.IntegerField(default=0)
+    fixed_word = models.CharField(max_length=50, null=True, blank=True)
+    fixed_meaning = models.CharField(max_length=200, default="")
+
+    class Meta:
+        ordering = ["order"]
+
+    def __str__(self):
+        return str(self)
+
+
 class Caption(models.Model):
     index = models.PositiveIntegerField(default=0)
     start_time = models.PositiveIntegerField(
@@ -46,27 +64,12 @@ class Caption(models.Model):
     )
     text = models.CharField(max_length=255)
     video = models.ForeignKey(Video, on_delete=models.CASCADE, db_index=True, null=True)
-    words = models.ManyToManyField(Word, through="CaptionWord", blank=True)
 
     class Meta:
         ordering = ["index"]
 
     def __str__(self):
         return str(self.text)
-
-
-class CaptionWord(models.Model):
-    caption = models.ForeignKey(Caption, on_delete=models.CASCADE)
-    root_word = models.ForeignKey(Word, on_delete=models.CASCADE, db_column="word_id")
-    order = models.IntegerField(default=0)
-    fixed_word = models.CharField(max_length=50, null=True, blank=True)
-    fixed_meaning = models.CharField(max_length=200, default="")
-
-    class Meta:
-        ordering = ["order"]
-
-    def __str__(self):
-        return str(self)
 
 
 class FetchSetting(models.Model):

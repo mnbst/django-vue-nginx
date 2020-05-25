@@ -201,15 +201,16 @@
             </div>
         </div>
         <FetchData></FetchData>
+        <VideoPlayer></VideoPlayer>
     </div>
 </template>
 
 <script>
     import virtualList from "vue-virtual-scroll-list";
-    import {SETTING_OPTIMISTIC, VIDEO_SETTINGS} from "../../graphql/query/query.step1";
+    import {SETTING_OPTIMISTIC, VIDEO_SETTINGS,VIDEO_OPTIMISTIC} from "../../graphql/query/query.step1";
     import {CREATE_SETTINGS, EXCEPT_VIDEO} from "../../graphql/mutation/mutation.step1";
     import FetchData from "./FetchData";
-    import {VIDEO_OPTIMISTIC} from "../../graphql/query/query.video";
+    import VideoPlayer from "./VideoPlayer";
     import {getVideoList} from "../../endpoints";
 
     const reg = new RegExp(/[!-/:-@[-`{-㿿]/g);
@@ -251,6 +252,7 @@
             }
         },
         components: {
+            VideoPlayer,
             FetchData,
             virtualList
         },

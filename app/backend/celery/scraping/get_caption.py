@@ -3,7 +3,6 @@ from __future__ import absolute_import, unicode_literals
 import re
 import socket
 import time
-import xml.etree.ElementTree as ElementTree
 from html import unescape
 from sqlite3 import Error
 from typing import Optional
@@ -17,7 +16,6 @@ from channels.layers import get_channel_layer
 from django.db import transaction
 
 from ... import settings as settings_py
-
 from ...dictionary_console.models import *
 
 time_out = (5.0, 30.0)
@@ -54,14 +52,33 @@ class GetCaption:
             if captions is None:
                 return True
             elif len(captions) < self.settings["minimumSentence"]:
-                self.__send_to_websocket(f'"{video.title}" has short sentences❗️')
+                self.__send_to_websocket(f'"{video.video_title}" has short sentences❗️')
                 continue
             with transaction.atomic():
                 try:
-                    video.save()
+                    instance: Video = Video(
+                        id=video["id"],
+                        video_title=video["videoTitle"],
+                        video_img=video["videoImg"],
+                        video_href=video["videoHref"],
+                        video_genre=video["videoGenre"],
+                        video_time=video["videoTime"],
+                        want=False,
+                        has_caption=True,
+                        youtubeID=video["youtubeID"],
+                        published_at=video["publishedAt"],
+                    )
+                    instance.save()
                     Caption.objects.bulk_create(captions)
-                    CaptionWord.objects.bulk_create(caption_words)
+                    for caption_word in caption_words:
+                        caption = Caption.objects.filter(
+                            video_id=instance.id,
+                            start_time=caption_word.caption.start_time,
+                        ).first()
+                        caption_word.caption = caption
+                        caption_word.save()
                 except Error as e:
+                    print(e)
                     self.__send_to_websocket(str(e))
         return True
 
@@ -166,155 +183,143 @@ class GetCaption:
 
         return start_time, end_time
 
-    def __get_imi(self, word: str, recursion: bool = False):
+    def __get_imi(self, word: str) -> (str, str):
         root_word_option = ""
         word = word.strip()
         try:
-            word = Word.objects.get(word=word)
-            return word.word, word.meaning
+            instance: Word = Word.objects.get(word=word)
+            return instance.word, instance.meaning
         except Word.DoesNotExist:
             pass
-        meaning = self.__get_imi_from_weblio(word)
-        if not meaning and "-" in word and " " not in word:
+        meaning, get_imi_from_weblio = self.__get_imi_from_weblio(word)
+        if not get_imi_from_weblio and "-" in word and " " not in word:
             su_root_word = word.split("-")[1]
             root_word = word.split("-")[0]
             if su_root_word and root_word in su_root_word:
-                root_word_option, meaning = self.__get_imi(su_root_word, recursion=True)
+                root_word_option, meaning = self.__get_imi(su_root_word)
             if meaning:
-                meaning = '{} ("-"=複数/動作の繰り返し)'.format(meaning)
-        elif not meaning and word.endswith("nya"):
+                meaning = "{} ('-'=複数/動作の繰り返し)".format(meaning)
+        elif not get_imi_from_weblio and word.endswith("nya"):
             root_word = word[: len(word) - 3]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+nya=特定の事柄・人を表す接尾辞)".format(meaning)
-        elif not meaning and word.endswith("kah"):
+        elif not get_imi_from_weblio and word.endswith("kah"):
             root_word = word[: len(word) - 3]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+kah=～ですか？)".format(meaning)
-        elif not meaning and word.endswith("an") and not word.endswith("kan"):
+        elif (
+            not get_imi_from_weblio and word.endswith("an") and not word.endswith("kan")
+        ):
             root_word = word[: len(word) - 2]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+an=単位/内容を特定する接尾辞)".format(meaning)
-        elif not meaning and word.endswith("in") and "-" not in word:
+        elif not get_imi_from_weblio and word.endswith("in") and "-" not in word:
             root_word = word[: len(word) - 2]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+in=ジャカルタ方言・他動詞の語幹をつくる接尾辞)".format(meaning)
-        elif not meaning and word.endswith("i"):
+        elif not get_imi_from_weblio and word.endswith("i"):
             root_word = word[: len(word) - 1]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+i=前置詞を代替する接尾辞/動作の反復・集中)".format(meaning)
-        elif not meaning and word.endswith("kan"):
+        elif not get_imi_from_weblio and word.endswith("kan"):
             root_word = word[: len(word) - 3]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+kan=他動詞の語幹をつくる接尾辞)".format(meaning)
-        elif not meaning and word.startswith("mu"):
+        elif not get_imi_from_weblio and word.startswith("mu"):
             root_word = word[2:]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning and "=" not in meaning:
                 meaning = "{} (+mu=君)".format(meaning)
-        elif not meaning and word.startswith("ku"):
+        elif not get_imi_from_weblio and word.startswith("ku"):
             root_word = word[2:]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning and "=" not in meaning:
                 meaning = "{} (+ku=僕)".format(meaning)
-        elif not meaning and word.endswith("lah"):
+        elif not get_imi_from_weblio and word.endswith("lah"):
             root_word = word[: len(word) - 3]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+lah=強調)".format(meaning)
-        elif not meaning and word.endswith("pun"):
+        elif not get_imi_from_weblio and word.endswith("pun"):
             root_word = word[: len(word) - 3]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+pun=～でさえ/～でも)".format(meaning)
-        elif not meaning and word.endswith("mu"):
+        elif not get_imi_from_weblio and word.endswith("mu"):
             root_word = word[: len(word) - 2]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+mu=君)".format(meaning)
-        elif not meaning and word.endswith("ku"):
+        elif not get_imi_from_weblio and word.endswith("ku"):
             root_word = word[: len(word) - 2]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+ku=僕)".format(meaning)
-        if not meaning and word.startswith("di"):
+        if not get_imi_from_weblio and word.startswith("di"):
             root_word = word[2:]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
 
-            if not meaning:
+            if not get_imi_from_weblio:
                 if root_word.startswith(("l", "r", "m", "n", "w", "y")):
                     root_word = "me{}".format(root_word)
-                    root_word_option, meaning = self.__get_imi(
-                        root_word, recursion=True
-                    )
+                    root_word_option, meaning = self.__get_imi(root_word)
                 elif root_word.startswith("t"):
                     root_word = "men{}".format(root_word[1:])
-                    root_word_option, meaning = self.__get_imi(
-                        root_word, recursion=True
-                    )
+                    root_word_option, meaning = self.__get_imi(root_word)
                 elif root_word.startswith("p"):
                     root_word = "mem{}".format(root_word[1:])
-                    root_word_option, meaning = self.__get_imi(
-                        root_word, recursion=True
-                    )
+                    root_word_option, meaning = self.__get_imi(root_word)
                 elif root_word.startswith(("c", "j", "z", "sy", "d")):
                     root_word = "men{}".format(root_word)
-                    root_word_option, meaning = self.__get_imi(
-                        root_word, recursion=True
-                    )
+                    root_word_option, meaning = self.__get_imi(root_word)
                 elif root_word.startswith("b"):
                     root_word = "mem{}".format(root_word)
-                    root_word_option, meaning = self.__get_imi(
-                        root_word, recursion=True
-                    )
+                    root_word_option, meaning = self.__get_imi(root_word)
                 elif root_word.startswith("s"):
                     root_word = "meny{}".format(root_word[1:])
-                    root_word_option, meaning = self.__get_imi(
-                        root_word, recursion=True
-                    )
+                    root_word_option, meaning = self.__get_imi(root_word)
                 else:
                     root_word = "meng{}".format(root_word)
-                    root_word_option, meaning = self.__get_imi(
-                        root_word, recursion=True
-                    )
+                    root_word_option, meaning = self.__get_imi(root_word)
 
             if meaning:
                 meaning = "{} (+di=受け身を表す接頭辞/～で、～に)".format(meaning)
-        elif not meaning and word.startswith("ber"):
+        elif not get_imi_from_weblio and word.startswith("ber"):
             root_word = word[3:]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+ber=～を持っている／身につけている／伴っている)".format(meaning)
-        elif not meaning and word.startswith("ter"):
+        elif not get_imi_from_weblio and word.startswith("ter"):
             root_word = word[3:]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+ter=最も～/～してしまう，～してしまっている)".format(meaning)
-        elif not meaning and word.startswith("se"):
+        elif not get_imi_from_weblio and word.startswith("se"):
             root_word = word[2:]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+se=1つの/1回の/同じ/全体)".format(meaning)
-        elif not meaning and word.startswith("ke") and word.endswith("an"):
+        elif not get_imi_from_weblio and word.startswith("ke") and word.endswith("an"):
             root_words_count = len(word) - 2
             root_word = word[2:root_words_count]
-            root_word_option, meaning = self.__get_imi(root_word, recursion=True)
+            root_word_option, meaning = self.__get_imi(root_word)
             if meaning:
                 meaning = "{} (+ke~an=ke--an派生語を作る共接辞)".format(meaning)
 
-        root_word = root_word_option if meaning and root_word_option else word
+        root_word = root_word_option if root_word_option else word
         if root_word.startswith("-") or root_word.endswith("-"):
             root_word = re.sub("-", "", root_word)
         word_ini = root_word[0:1]
 
         if re.match(self.REGEX_SPACE, root_word) and not meaning:
             return root_word, meaning
-        elif not recursion and root_word == word:
+        if get_imi_from_weblio or root_word == word:
             with transaction.atomic():
                 meaning = meaning.strip()
                 word_instance = Word(
@@ -326,10 +331,10 @@ class GetCaption:
                 word_instance.save()
         return root_word, meaning
 
-    def __get_imi_from_weblio(self, word):
+    def __get_imi_from_weblio(self, word) -> (str, bool):
         meaning = ""
         url = "https://njjn.weblio.jp/content/{}".format(word)
-        time.sleep(0) if settings_py.DEBUG_CELERY else time.sleep(0.3)
+        time.sleep(0) if settings_py.DEBUG_CELERY else time.sleep(0.5)
         while True:
             try:
                 response = requests.get(url, timeout=time_out)
@@ -349,7 +354,7 @@ class GetCaption:
                     meaning = self.__format_text(elements_crosslink + elements_igngj)
                     break
         response.close()
-        return meaning
+        return meaning, True if meaning else False
 
     def __format_text(self, elements):
         contents = list()
@@ -360,6 +365,9 @@ class GetCaption:
             contents = contents + tag.text.strip().split(",")
         c_unique = list(set(contents))
         for c in c_unique:
+            removed, c_unique = self.__check_double(c, c_unique)
+            if removed:
+                continue
             if "【説明】" in c:
                 description = True
                 key = c
@@ -376,3 +384,14 @@ class GetCaption:
                     c_unique.remove(c)
             c_unique.append(key1)
         return "、".join(c_unique)
+
+    @staticmethod
+    def __check_double(check_word: str, meaning_list: list):
+        removed = False
+        if 0 <= len(meaning_list) <= 1:
+            return removed, meaning_list
+        for meaning in meaning_list:
+            if check_word in meaning and check_word != meaning:
+                removed = True
+                meaning_list.remove(check_word)
+        return removed, meaning_list
