@@ -32,6 +32,8 @@ DEBUG_CELERY = 0
 
 END_MESSAGE = "all done😀"
 
+TIME_SLEEP = 1
+
 ALLOWED_HOSTS = ["*"]
 # os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 

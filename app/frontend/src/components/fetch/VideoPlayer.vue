@@ -33,10 +33,10 @@
                                           :remain="10"
                                           :start="index-3">
                                 <div v-for="caption in video.captionSet" :key="caption.index">
-                                    <div v-if="caption.index===index" class="blue--text"
-                                         @click="jumpToIndex(caption.index)">
+                                    <a v-if="caption.index===index" class="blue--text"
+                                       @click="jumpToIndex(caption.index)">
                                         {{caption.index}}: {{caption.text}}
-                                    </div>
+                                    </a>
                                     <a v-else class="black--text" @click="jumpToIndex(caption.index)">{{caption.index}}:
                                         {{caption.text}}
                                     </a>
@@ -48,17 +48,37 @@
                         <v-card v-if="video" class="col-12 list mt-n3" color="white align-center">
                             <v-col cols="12" sm="12">
                                 <h3 class="mt-n5">word-meaning</h3>
-                                <div class="row">
-                                    <div class="col-3">
-                                        <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
-                                            <v-text-field class="my-n7"
-                                                          v-model="video.captionSet[index].captionwordSet[id].fixedWord"></v-text-field>
+                                <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
+                                    <div class="row">
+                                        <div class="col-1">
+                                            <div class="row">
+                                                <v-btn
+                                                        class="mb-n12 mt-n3"
+                                                        icon
+                                                        top
+                                                        color="grey lighten-1"
+                                                >
+                                                    <v-icon dark>add_circle</v-icon>
+                                                </v-btn>
+                                                <v-btn
+                                                        class="mb-n12 mt-n3"
+                                                        icon
+                                                        top
+                                                        color="grey lighten-1"
+                                                >
+                                                    <v-icon dark>remove_circle</v-icon>
+                                                </v-btn>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-9">
-                                        <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
-                                            <v-text-field class="my-n7"
-                                                          v-model="video.captionSet[index].captionwordSet[id].fixedMeaning"></v-text-field>
+                                        <div class="col-3">
+                                            <div class="my-n2">
+                                                <v-btn class="text-lowercase">{{word.fixedWord}}</v-btn>
+                                            </div>
+                                        </div>
+                                        <div class="col-8 meaning">
+                                            <div class="mb-n2">
+                                                {{word.fixedMeaning}}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -109,15 +129,15 @@
                     </div>
                 </div>
                 <div class="col-lg-4 col-xl-12">
-                    <div class="video-list">
-                        <div :key="video.id" v-for="video in videoList" class="thumbnail">
-                            <div v-if="video.hasCaption">
-                                <a v-on:click="chooseVideo(video)" class="thumbnail-img">
-                                    <img :src="video.videoImg"/>
-                                </a>
-                                <div class="thumbnail-info">
+                    <div :key="video.id" v-for="video in videoList">
+                        <div v-if="video.hasCaption">
+                            <div class="row">
+                                <img class="col-4" :src="video.videoImg" v-on:click="chooseVideo(video)"/>
+                                <div class="col-8">
                                     <a v-on:click="chooseVideo(video)">
-                                        <h3 v-on:click="chooseVideo(video)">{{video.videoTitle}}</h3>
+                                        <div class="text-truncate" v-on:click="chooseVideo(video)">
+                                            {{video.videoTitle}}
+                                        </div>
                                     </a>
                                     <p>{{video.videoTime}}</p>
                                 </div>
@@ -167,6 +187,7 @@
                 form.splice(-1, 1);
             },
             chooseVideo: function (video) {
+                this.index = 0
                 const _this = this
                 this.loadingCaption = true
                 this.$apollo.queries.video.refetch({
@@ -242,16 +263,8 @@
         border-radius: 4px
     }
 
-    .thumbnail {
-        display: flex;
-    }
-
     .thumbnail img {
         width: 168px;
-    }
-
-    .thumbnail-info {
-        margin-left: 20px;
     }
 
     .thumbnail h3 {
@@ -270,12 +283,22 @@
     }
 
     .list {
-        height: 340px;
+        height: 370px;
         overflow-y: auto;
     }
 
     .videoPlayer {
-        height: 730px;
+        height: 760px;
     }
 
+    .meaning {
+        width: 100%;
+        overflow-x: scroll;
+        white-space: nowrap;
+        border-bottom: solid 1px;
+    }
+
+    .meaning::-webkit-scrollbar {
+        display: none;
+    }
 </style>

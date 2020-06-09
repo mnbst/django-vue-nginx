@@ -17,6 +17,7 @@ from django.db import transaction
 
 from ... import settings as settings_py
 from ...dictionary_console.models import *
+from ...settings import END_MESSAGE, TIME_SLEEP
 
 time_out = (5.0, 30.0)
 
@@ -37,7 +38,6 @@ class GetCaption:
         text = kwargs.get("text", None)
         message = kwargs.get("message", None)
         if text:
-            print(text)
             async_to_sync(self.channel_layer.group_send)(
                 "get_caption", {"type": "get.caption.messages", "text": text}
             )
@@ -80,6 +80,7 @@ class GetCaption:
                 except Error as e:
                     print(e)
                     self.__send_to_websocket(str(e))
+        self.__send_to_websocket(END_MESSAGE)
         return True
 
     def __make_script(self, video):
@@ -334,14 +335,16 @@ class GetCaption:
     def __get_imi_from_weblio(self, word) -> (str, bool):
         meaning = ""
         url = "https://njjn.weblio.jp/content/{}".format(word)
-        time.sleep(0) if settings_py.DEBUG_CELERY else time.sleep(0.5)
+        time.sleep(0) if settings_py.DEBUG_CELERY else time.sleep(TIME_SLEEP)
         while True:
             try:
                 response = requests.get(url, timeout=time_out)
                 break
-            except OpenSSL.SSL.WantReadError:
+            except OpenSSL.SSL.WantReadError as error:
+                self.__send_to_websocket(error)
                 time.sleep(0.1)
-            except socket.timeout:
+            except socket.timeout as error:
+                self.__send_to_websocket(error)
                 time.sleep(0.1)
         soup = BeautifulSoup(response.text, "lxml")
 

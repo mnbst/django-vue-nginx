@@ -73,7 +73,7 @@
                 </div>
                 <div class="col-lg-8 col-xs-12 pr-8">
                     <div class="dark_terminal">
-                        <virtual-list :size="30" :remain="22" :start="items.length">
+                        <virtual-list :size="26" :remain="25" :start="items.length">
                             <ul
                                     class="white--text font-weight-black"
                                     v-for="item in items"
@@ -160,13 +160,13 @@
             },
             fetch(setting, videoList) {
                 let items = this.items;
+                this.$data.activate = true;
                 let _this = this;
                 socket = new WebSocket(getCaption);
                 socket.onmessage = function (e) {
                     items.push({id: items.length, text: e.data});
                 };
                 socket.onopen = function () {
-                    _this.$data.activate = true;
                     const sortedList = videoList.filter(video => video.want)
                     const data = {'videoList': sortedList, 'setting': setting}
                     socket.send(JSON.stringify(data));
@@ -176,11 +176,13 @@
                 };
                 socket.onclose = function () {
                     items.push({id: items.length, text: 'connection closed 👋'});
+                    _this.$apollo.queries.videoList.refetch()
                     _this.$data.activate = false;
                 };
             },
             stop_fetch() {
                 let items = this.items;
+                this.$apollo.queries.videoList.refetch()
                 if (socket && socket.readyState === 1) {
                     items.push({id: items.length, text: 'closing...'});
                     socket.close()
