@@ -46,28 +46,114 @@
                     </div>
                     <div class="row pl-4">
                         <v-card v-if="video" class="col-12 list mt-n3" color="white align-center">
-                            <v-col cols="12" sm="12">
-                                <h3 class="mt-n5">word-meaning</h3>
+                            <div cols="12" sm="12">
+                                <div class="row">
+                                    <v-dialog v-model="dialog" persistent max-width="290">
+                                        <template v-slot:activator="{ on }">
+                                            <v-btn class="ml-2 mt-n1" color="primary" v-on="on">保存</v-btn>
+                                        </template>
+                                        <v-card>
+                                            <v-card-title class="headline">字幕{{index}}を保存しますか？
+                                            </v-card-title>
+                                            <v-card-actions>
+                                                <v-spacer></v-spacer>
+                                                <v-btn color="green darken-1" text @click="dialog = false">いいえ</v-btn>
+                                                <v-btn color="green darken-1" text
+                                                       @click="saveCaption(video.captionSet[index])">はい
+                                                </v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 my-n3">
+                                        <div class="row">
+                                            <h3>start time</h3>
+                                            <v-text-field
+                                                    class="my-n3 mx-5"
+                                                    min="0"
+                                                    step="1"
+                                                    type="number"
+                                                    v-model="video.captionSet[index].startTime"
+                                            ></v-text-field>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 my-n3">
+                                        <div class="row">
+                                            <h3>end time</h3>
+                                            <v-text-field
+                                                    class="my-n3 mx-5"
+                                                    min="0"
+                                                    step="1"
+                                                    type="number"
+                                                    v-model="video.captionSet[index].endTime"
+                                            ></v-text-field>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
                                     <div class="row">
                                         <div class="col-1">
                                             <div class="row">
-                                                <v-btn
-                                                        class="mb-n12 mt-n3"
-                                                        icon
-                                                        top
-                                                        color="grey lighten-1"
-                                                >
-                                                    <v-icon dark>add_circle</v-icon>
-                                                </v-btn>
-                                                <v-btn
-                                                        class="mb-n12 mt-n3"
-                                                        icon
-                                                        top
-                                                        color="grey lighten-1"
-                                                >
-                                                    <v-icon dark>remove_circle</v-icon>
-                                                </v-btn>
+                                                <v-dialog v-model="addDialog" persistent max-width="290">
+                                                    <template v-slot:activator="{ on }">
+                                                        <v-btn
+                                                                class="mb-n12 mt-n3"
+                                                                icon
+                                                                top
+                                                                color="grey lighten-1"
+                                                                v-on="on"
+                                                        >
+                                                            <v-icon dark>add_circle</v-icon>
+                                                        </v-btn>
+                                                    </template>
+                                                    <v-card>
+                                                        <v-card-title class="headline">
+                                                            単語を追加しますか？
+                                                        </v-card-title>
+                                                        <v-card-actions>
+                                                            <v-spacer></v-spacer>
+                                                            <v-btn color="green darken-1" text
+                                                                   @click="addDialog = false">
+                                                                いいえ
+                                                            </v-btn>
+                                                            <v-btn color="green darken-1" text
+                                                                   v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,id)">
+                                                                はい
+                                                            </v-btn>
+                                                        </v-card-actions>
+                                                    </v-card>
+                                                </v-dialog>
+                                                <v-dialog v-model="removeDialog" persistent max-width="290">
+                                                    <template v-slot:activator="{ on }">
+                                                        <v-btn
+                                                                class="mb-n12 mt-n3"
+                                                                icon
+                                                                top
+                                                                color="grey lighten-1"
+                                                                v-on="on"
+                                                        >
+                                                            <v-icon dark>remove_circle</v-icon>
+                                                        </v-btn>
+                                                    </template>
+                                                    <v-card>
+                                                        <v-card-title class="headline">
+                                                            単語を削除しますか？
+                                                        </v-card-title>
+                                                        <v-card-actions>
+                                                            <v-spacer></v-spacer>
+                                                            <v-btn color="green darken-1" text
+                                                                   @click="removeDialog = false">
+                                                                いいえ
+                                                            </v-btn>
+                                                            <v-btn color="green darken-1" text
+                                                                   v-on:click="removeCaptionWord(id)">
+                                                                はい
+                                                            </v-btn>
+                                                        </v-card-actions>
+                                                    </v-card>
+                                                </v-dialog>
+
                                             </div>
                                         </div>
                                         <div class="col-3">
@@ -82,49 +168,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </v-col>
-                            <v-col cols="12" sm="12">
-                                <div class="row">
-                                    <h3>index</h3>
-                                    <v-col cols="3">
-                                        <v-text-field
-                                                class="my-n5 mb-n7 pa-0"
-                                                min="0"
-                                                step="1"
-                                                type="number"
-                                                v-model="video.captionSet[index].index">
-                                        </v-text-field>
-                                    </v-col>
-                                </div>
-                            </v-col>
-                            <v-col cols="12" sm="12">
-                                <div class="row">
-                                    <h3>start_time</h3>
-                                    <v-col cols="3">
-                                        <v-text-field
-                                                class="my-n5 mb-n7 pa-0"
-                                                min="0"
-                                                step="1"
-                                                type="number"
-                                                v-model="video.captionSet[index].startTime"
-                                        ></v-text-field>
-                                    </v-col>
-                                </div>
-                            </v-col>
-                            <v-col cols="12" sm="12">
-                                <div class="row">
-                                    <h3>end_time</h3>
-                                    <v-col cols="3">
-                                        <v-text-field
-                                                class="my-n5 mb-n7 pa-0"
-                                                min="0"
-                                                step="1"
-                                                type="number"
-                                                v-model="video.captionSet[index].endTime"
-                                        ></v-text-field>
-                                    </v-col>
-                                </div>
-                            </v-col>
+                            </div>
                         </v-card>
                     </div>
                 </div>
@@ -165,6 +209,9 @@
                 videoList: [],
                 index: 0,
                 loadingCaption: false,
+                dialog: false,
+                addDialog: false,
+                removeDialog: false,
             }
         },
         computed: {
@@ -180,11 +227,18 @@
             video: VIDEO_SETTINGS,
         },
         methods: {
-            add_form(form) {
-                form.push("");
+            addCaptionWord(captionWord, index) {
+                captionWord.splice(index + 1, 0, captionWord[index]);
+                this.addDialog = false;
             },
-            remove_form(form) {
-                form.splice(-1, 1);
+            removeCaptionWord(index) {
+                const captionWord = this.video.captionSet[this.index].captionwordSet
+                captionWord.splice(index, 1);
+                this.removeDialog = false;
+            },
+            saveCaption(caption) {
+                console.log(caption);
+                this.dialog = false;
             },
             chooseVideo: function (video) {
                 this.index = 0
