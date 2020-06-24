@@ -26,7 +26,7 @@ export const VIDEO_OPTIMISTIC = {
         videoTitle: 'loading...',
         videoGenre: ['loading...'],
         youtubeID: 'loading...',
-        hasCaption:true,
+        hasCaption: true,
         captionSet: [{
             index: 0,
             startTime: 0,
@@ -55,8 +55,9 @@ export const VIDEO_OPTIMISTIC = {
     }
 }
 
-export const VIDEO_SETTINGS = gql`query ($videoHref: String=""){ 
-settings(authority:"super") {
+export const VIDEO_SETTINGS = gql`
+query ($videoHref: String="") {
+  settings(authority: "super") {
     id
     authority
     exceptedHref
@@ -66,8 +67,8 @@ settings(authority:"super") {
     videoToRenewal
     minimumSentence
     languageLimit
-    }
-    videoList{
+  }
+  videoList {
     id
     videoTitle
     videoImg
@@ -86,11 +87,13 @@ settings(authority:"super") {
     videoTitle
     videoGenre
     captionSet {
+      id
       index
       startTime
       endTime
       text
       captionwordSet {
+        id
         rootWord {
           word
           meaning
@@ -100,4 +103,5 @@ settings(authority:"super") {
       }
     }
   }
-}`;
+}
+`;

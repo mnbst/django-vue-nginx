@@ -46,24 +46,19 @@
                     </div>
                     <div class="row pl-4">
                         <v-card v-if="video" class="col-12 list mt-n3" color="white align-center">
-                            <div cols="12" sm="12">
-                                <div class="row">
-                                    <v-dialog v-model="dialog" persistent max-width="290">
-                                        <template v-slot:activator="{ on }">
-                                            <v-btn class="ml-2 mt-n1" color="primary" v-on="on">保存</v-btn>
-                                        </template>
-                                        <v-card>
-                                            <v-card-title class="headline">字幕{{index}}を保存しますか？
-                                            </v-card-title>
-                                            <v-card-actions>
-                                                <v-spacer></v-spacer>
-                                                <v-btn color="green darken-1" text @click="dialog = false">いいえ</v-btn>
-                                                <v-btn color="green darken-1" text
-                                                       @click="saveCaption(video.captionSet[index])">はい
-                                                </v-btn>
-                                            </v-card-actions>
-                                        </v-card>
-                                    </v-dialog>
+                            <div v-if="loadingCaptionWordSet===true" class="text-center">
+                                <v-progress-circular
+                                        :size="50"
+                                        color="primary"
+                                        indeterminate
+                                ></v-progress-circular>
+                            </div>
+                            <div v-else class="col-12">
+                                <div class="mt-n4">
+                                    <v-btn color="primary" @click="saveCaption">保存</v-btn>
+                                    <v-btn class="ml-3" color="secondary"
+                                           @click="resetCaption">戻す
+                                    </v-btn>
                                 </div>
                                 <div class="row">
                                     <div class="col-6 my-n3">
@@ -91,83 +86,46 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
-                                    <div class="row">
-                                        <div class="col-1">
+                                <draggable v-model="video.captionSet[index].captionwordSet">
+                                    <transition-group>
+                                        <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
                                             <div class="row">
-                                                <v-dialog v-model="addDialog" persistent max-width="290">
-                                                    <template v-slot:activator="{ on }">
+                                                <div class="col-1">
+                                                    <div class="row">
                                                         <v-btn
                                                                 class="mb-n12 mt-n3"
                                                                 icon
                                                                 top
                                                                 color="grey lighten-1"
-                                                                v-on="on"
+                                                                v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,id)"
                                                         >
                                                             <v-icon dark>add_circle</v-icon>
                                                         </v-btn>
-                                                    </template>
-                                                    <v-card>
-                                                        <v-card-title class="headline">
-                                                            単語を追加しますか？
-                                                        </v-card-title>
-                                                        <v-card-actions>
-                                                            <v-spacer></v-spacer>
-                                                            <v-btn color="green darken-1" text
-                                                                   @click="addDialog = false">
-                                                                いいえ
-                                                            </v-btn>
-                                                            <v-btn color="green darken-1" text
-                                                                   v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,id)">
-                                                                はい
-                                                            </v-btn>
-                                                        </v-card-actions>
-                                                    </v-card>
-                                                </v-dialog>
-                                                <v-dialog v-model="removeDialog" persistent max-width="290">
-                                                    <template v-slot:activator="{ on }">
                                                         <v-btn
                                                                 class="mb-n12 mt-n3"
                                                                 icon
                                                                 top
                                                                 color="grey lighten-1"
-                                                                v-on="on"
+                                                                v-on:click="removeCaptionWord(id)"
                                                         >
                                                             <v-icon dark>remove_circle</v-icon>
                                                         </v-btn>
-                                                    </template>
-                                                    <v-card>
-                                                        <v-card-title class="headline">
-                                                            単語を削除しますか？
-                                                        </v-card-title>
-                                                        <v-card-actions>
-                                                            <v-spacer></v-spacer>
-                                                            <v-btn color="green darken-1" text
-                                                                   @click="removeDialog = false">
-                                                                いいえ
-                                                            </v-btn>
-                                                            <v-btn color="green darken-1" text
-                                                                   v-on:click="removeCaptionWord(id)">
-                                                                はい
-                                                            </v-btn>
-                                                        </v-card-actions>
-                                                    </v-card>
-                                                </v-dialog>
-
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="my-n2">
+                                                        <v-btn class="text-lowercase">{{word.fixedWord}}</v-btn>
+                                                    </div>
+                                                </div>
+                                                <div class="col-8 meaning">
+                                                    <div class="mb-n2">
+                                                        {{word.fixedMeaning}}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-3">
-                                            <div class="my-n2">
-                                                <v-btn class="text-lowercase">{{word.fixedWord}}</v-btn>
-                                            </div>
-                                        </div>
-                                        <div class="col-8 meaning">
-                                            <div class="mb-n2">
-                                                {{word.fixedMeaning}}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                    </transition-group>
+                                </draggable>
                             </div>
                         </v-card>
                     </div>
@@ -176,10 +134,10 @@
                     <div :key="video.id" v-for="video in videoList">
                         <div v-if="video.hasCaption">
                             <div class="row">
-                                <img class="col-4" :src="video.videoImg" v-on:click="chooseVideo(video)"/>
+                                <img class="col-4" :src="video.videoImg" v-on:click="selectVideo(video)"/>
                                 <div class="col-8">
-                                    <a v-on:click="chooseVideo(video)">
-                                        <div class="text-truncate" v-on:click="chooseVideo(video)">
+                                    <a v-on:click="selectVideo(video)">
+                                        <div class="text-truncate" v-on:click="selectVideo(video)">
                                             {{video.videoTitle}}
                                         </div>
                                     </a>
@@ -197,6 +155,8 @@
 <script>
     import virtualList from "vue-virtual-scroll-list";
     import {VIDEO_SETTINGS} from "../../graphql/query/query.step1";
+    import draggable from 'vuedraggable'
+    import {RESET_CAPTION, SELECT_VIDEO} from "../../graphql/mutation/mutation.step1";
 
     let timer;
     let oneLine = false;
@@ -205,10 +165,9 @@
         name: 'VideoPlayer',
         data() {
             return {
-                video: null,
-                videoList: [],
                 index: 0,
                 loadingCaption: false,
+                loadingCaptionWordSet: false,
                 dialog: false,
                 addDialog: false,
                 removeDialog: false,
@@ -220,7 +179,8 @@
             }
         },
         components: {
-            "virtual-list": virtualList
+            "virtual-list": virtualList,
+            draggable
         },
         apollo: {
             videoList: VIDEO_SETTINGS,
@@ -228,25 +188,58 @@
         },
         methods: {
             addCaptionWord(captionWord, index) {
-                captionWord.splice(index + 1, 0, captionWord[index]);
-                this.addDialog = false;
+                const word = Object.assign({}, captionWord[index])
+                const rootWord = word.rootWord;
+                Object.keys(rootWord).forEach((x) => {
+                    rootWord[x] = ''
+                });
+                word.fixedWord = '';
+                word.fixedMeaning = '';
+                captionWord.splice(index + 1, 0, word);
             },
             removeCaptionWord(index) {
                 const captionWord = this.video.captionSet[this.index].captionwordSet
                 captionWord.splice(index, 1);
-                this.removeDialog = false;
             },
-            saveCaption(caption) {
-                console.log(caption);
-                this.dialog = false;
+            saveCaption() {
+                const caption = this.video.captionSet[this.index];
+                if (confirm('保存しますか？')) {
+                    this.$apollo.mutate(
+                    )
+                    console.log(caption)
+                    alert('saved');
+                }
             },
-            chooseVideo: function (video) {
-                this.index = 0
-                const _this = this
+            resetCaption() {
+                const video = this.video;
+                const index = this.index;
+                const target = video.captionSet[index];
+                this.$apollo.mutate(
+                    {
+                        mutation: RESET_CAPTION,
+                        variables: {id: target.id},
+                        update: (store, {data: {resetCaption}}) => {
+                            const data = store.readQuery({query: VIDEO_SETTINGS});
+                            data.video.captionSet[index].captionwordSet = resetCaption.caption.captionwordSet;
+                            store.writeQuery({query: VIDEO_SETTINGS, data})
+                        }
+                    })
+            },
+            selectVideo: function (video) {
+                this.index = 0;
+                const _this = this;
+                const videoHref = video.videoHref;
                 this.loadingCaption = true
-                this.$apollo.queries.video.refetch({
-                    videoHref: video.videoHref
-                }).then(() => {
+                this.$apollo.mutate(
+                    {
+                        mutation: SELECT_VIDEO,
+                        variables: {videoHref: videoHref},
+                        update: (store, {data: {selectVideo}}) => {
+                            const data = store.readQuery({query: VIDEO_SETTINGS});
+                            data.video = selectVideo.video
+                            store.writeQuery({query: VIDEO_SETTINGS, data})
+                        }
+                    }).then(() => {
                     _this.loadingCaption = false
                 })
             },

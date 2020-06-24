@@ -26,7 +26,7 @@
                                 <v-spacer></v-spacer>
                                 <v-dialog v-model="dialog" persistent max-width="290">
                                     <template v-slot:activator="{ on }">
-                                        <v-btn class="mt-5 mr-5" color="error" v-on="on">ADD TO NG</v-btn>
+                                        <v-btn class="mt-5 mr-5" color="error" v-on="on">ADD THIS VIDEO TO NG</v-btn>
                                     </template>
                                     <v-card>
                                         <v-card-title class="headline">{{video.videoHref}}を除外動画idリストに追加しますか?

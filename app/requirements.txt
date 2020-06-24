@@ -38,3 +38,4 @@ lxml==4.5.0
 celery
 redis==3.4.1
 graphene-django==2.9.0
+black

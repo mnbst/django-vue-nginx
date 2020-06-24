@@ -1,32 +1,8 @@
 import graphene
 from graphene_django import DjangoObjectType
 
+from ..object_types import *
 from ...dictionary_console.models import *
-
-
-class WordType(DjangoObjectType):
-    class Meta:
-        model = Word
-
-
-class VideoType(DjangoObjectType):
-    class Meta:
-        model = Video
-
-
-class FetchSettingsType(DjangoObjectType):
-    class Meta:
-        model = FetchSetting
-
-
-class CaptionWordType(DjangoObjectType):
-    class Meta:
-        model = CaptionWord
-
-
-class CaptionType(DjangoObjectType):
-    class Meta:
-        model = Caption
 
 
 class RootQuery(graphene.ObjectType):
@@ -73,12 +49,3 @@ class RootQuery(graphene.ObjectType):
         if authority:
             return FetchSetting.objects.get(authority=authority)
         return None
-
-    def resolve_caption_list(self, info, **kwargs):
-        href = kwargs.get("video_href")
-        if href:
-            result = Caption.objects.order_by("index").filter(video_href=href)
-            return result
-        video = Video.objects.filter(has_caption=True).first()
-        result = Caption.objects.order_by("index").filter(video=video)
-        return result

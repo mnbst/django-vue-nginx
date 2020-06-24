@@ -1,7 +1,7 @@
 import graphene
 
-from .graphql.query.root import RootQuery
-from .graphql.mutation.root import RootMutation
+from .graphql.query.query_root import RootQuery
+from .graphql.mutation.mutation_root import RootMutation
 
 schema = graphene.Schema(
     query=RootQuery,

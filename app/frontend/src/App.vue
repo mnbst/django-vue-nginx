@@ -18,7 +18,7 @@
 <script>
     import Home from "./components/Home";
     import VideoPlayer from "./components/fetch/VideoPlayer";
-    import SelectableVideoList from "./components/fetch/SelectableVideoList";
+    import SelectableVideoList from "./components/fetch/CreateVideoList";
     import FetchData from "./components/fetch/FetchData";
     import Vue from "vue";
     import VueRouter from "vue-router";

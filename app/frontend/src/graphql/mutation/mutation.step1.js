@@ -1,29 +1,8 @@
 import {gql} from "apollo-boost";
 
 export const CREATE_SETTINGS = gql`
-   mutation(
-    $id: Int!
-    $authority: String!
-    $exceptedHref: [String!]
-    $pageToCrawl: Int!
-    $languageLimit: Int!
-    $minimumSentence: Int!
-    $videoPerPage: Int!
-    $videoToDelete: [String!]
-    $videoToRenewal: [String!]
-   ){
-  createSettings(settingsInput:{
-    id:$id
-    authority:$authority
-    exceptedHref: $exceptedHref
-    pageToCrawl:  $pageToCrawl
-    languageLimit:  $languageLimit
-    minimumSentence:  $minimumSentence
-    videoPerPage: $videoPerPage
-    videoToDelete: $videoToDelete
-    videoToRenewal: $videoToRenewal
-  })
-  {
+mutation ($id: Int!, $authority: String!, $exceptedHref: [String!], $pageToCrawl: Int!, $languageLimit: Int!, $minimumSentence: Int!, $videoPerPage: Int!, $videoToDelete: [String!], $videoToRenewal: [String!]) {
+  createSettings(settingsInput: {id: $id, authority: $authority, exceptedHref: $exceptedHref, pageToCrawl: $pageToCrawl, languageLimit: $languageLimit, minimumSentence: $minimumSentence, videoPerPage: $videoPerPage, videoToDelete: $videoToDelete, videoToRenewal: $videoToRenewal}) {
     id
     authority
     exceptedHref
@@ -32,8 +11,11 @@ export const CREATE_SETTINGS = gql`
     minimumSentence
     videoPerPage
     videoToDelete
-    videoToRenewal}
-  }`;
+    videoToRenewal
+  }
+}
+
+`;
 
 export const EXCEPT_VIDEO = gql`
 mutation(
@@ -68,4 +50,58 @@ settings {
     languageLimit
     }
 }
-}`;
+}
+`;
+
+
+export const RESET_CAPTION = gql`
+mutation ($id: ID!) {
+  resetCaption(id: $id) {
+    caption {
+      captionwordSet {
+        id
+        rootWord {
+          word
+          meaning
+        }
+        fixedWord
+        fixedMeaning
+      }
+    }
+  }
+}
+`;
+
+export const SELECT_VIDEO = gql`
+mutation ($videoHref: String!) {
+  selectVideo(videoHref: $videoHref) {
+    video {
+      videoHref
+      videoImg
+      videoTime
+      videoTitle
+      videoGenre
+      captionSet {
+        id
+        index
+        startTime
+        endTime
+        text
+        captionwordSet {
+          id
+          rootWord {
+            word
+            meaning
+          }
+          fixedWord
+          fixedMeaning
+        }
+      }
+    }
+  }
+}
+`;
+
+// export const SAVE_CAPTION = gql`
+//
+// `;
