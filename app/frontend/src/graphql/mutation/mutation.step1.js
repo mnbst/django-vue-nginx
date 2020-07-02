@@ -1,8 +1,8 @@
 import {gql} from "apollo-boost";
 
 export const CREATE_SETTINGS = gql`
-mutation ($id: Int!, $authority: String!, $exceptedHref: [String!], $pageToCrawl: Int!, $languageLimit: Int!, $minimumSentence: Int!, $videoPerPage: Int!, $videoToDelete: [String!], $videoToRenewal: [String!]) {
-  createSettings(settingsInput: {id: $id, authority: $authority, exceptedHref: $exceptedHref, pageToCrawl: $pageToCrawl, languageLimit: $languageLimit, minimumSentence: $minimumSentence, videoPerPage: $videoPerPage, videoToDelete: $videoToDelete, videoToRenewal: $videoToRenewal}) {
+mutation ($settingInput: SettingsInput!) {
+  createSettings(settingsInput: $settingInput) {
     id
     authority
     exceptedHref
@@ -14,7 +14,6 @@ mutation ($id: Int!, $authority: String!, $exceptedHref: [String!], $pageToCrawl
     videoToRenewal
   }
 }
-
 `;
 
 export const EXCEPT_VIDEO = gql`
@@ -64,6 +63,7 @@ mutation ($id: ID!) {
           word
           meaning
         }
+        order
         fixedWord
         fixedMeaning
       }
@@ -89,6 +89,7 @@ mutation ($videoHref: String!) {
         text
         captionwordSet {
           id
+          order
           rootWord {
             word
             meaning
@@ -102,6 +103,26 @@ mutation ($videoHref: String!) {
 }
 `;
 
-// export const SAVE_CAPTION = gql`
-//
-// `;
+export const SAVE_CAPTION = gql`
+mutation ($captionInput: CaptionInput!, $captionWordInputs: [CaptionWordInput], $wordInputs: [WordInput]) {
+  saveCaption(captionInput: $captionInput, captionWordInputs: $captionWordInputs, wordInputs: $wordInputs) {
+    caption {
+      id
+      index
+      startTime
+      endTime
+      text
+      captionwordSet {
+        id
+        order
+        rootWord {
+          word
+          meaning
+        }
+        fixedWord
+        fixedMeaning
+      }
+    }
+  }
+}
+`;

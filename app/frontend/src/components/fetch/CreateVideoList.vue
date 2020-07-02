@@ -207,7 +207,7 @@
 
 <script>
     import virtualList from "vue-virtual-scroll-list";
-    import {SETTING_OPTIMISTIC, VIDEO_SETTINGS,VIDEO_OPTIMISTIC} from "../../graphql/query/query.step1";
+    import {SETTING_OPTIMISTIC, VIDEO_SETTINGS, VIDEO_OPTIMISTIC} from "../../graphql/query/query.step1";
     import {CREATE_SETTINGS, EXCEPT_VIDEO} from "../../graphql/mutation/mutation.step1";
     import FetchData from "./FetchData";
     import VideoPlayer from "./VideoPlayer";
@@ -280,7 +280,19 @@
                     .then(settings => {
                         this.$apollo.mutate({
                             mutation: CREATE_SETTINGS,
-                            variables: settings,
+                            variables: {
+                                settingInput: {
+                                    authority: settings.authority,
+                                    exceptedHref: settings.exceptedHref,
+                                    id: settings.id,
+                                    languageLimit: settings.languageLimit,
+                                    minimumSentence: settings.minimumSentence,
+                                    pageToCrawl: settings.pageToCrawl,
+                                    videoPerPage: settings.videoPerPage,
+                                    videoToDelete: settings.videoToDelete,
+                                    videoToRenewal: settings.videoToRenewal
+                                }
+                            },
                             update: (store, {data: {createSettings}}) => {
                                 const data = store.readQuery({query: VIDEO_SETTINGS});
                                 data.settings = createSettings;

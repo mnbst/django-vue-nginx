@@ -61,6 +61,14 @@
                                     </v-btn>
                                 </div>
                                 <div class="row">
+                                    <h3 class="mt-2">text</h3>
+                                    <v-text-field
+                                            class="my-n2 mx-5 ml-12"
+                                            type="text"
+                                            v-model="video.captionSet[index].text"
+                                    ></v-text-field>
+                                </div>
+                                <div class="row">
                                     <div class="col-6 my-n3">
                                         <div class="row">
                                             <h3>start time</h3>
@@ -86,7 +94,22 @@
                                         </div>
                                     </div>
                                 </div>
-                                <draggable v-model="video.captionSet[index].captionwordSet">
+                                <div v-if="video.captionSet[index].captionwordSet.length===0">
+                                    <div class="col-1">
+                                        <div class="row">
+                                            <v-btn
+                                                    class="mb-n12 mt-n3"
+                                                    icon
+                                                    top
+                                                    color="grey lighten-1"
+                                                    v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,0)"
+                                            >
+                                                <v-icon dark>add_circle</v-icon>
+                                            </v-btn>
+                                        </div>
+                                    </div>
+                                </div>
+                                <draggable v-model="video.captionSet[index].captionwordSet" @update="onUpdate">
                                     <transition-group>
                                         <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
                                             <div class="row">
@@ -156,7 +179,7 @@
     import virtualList from "vue-virtual-scroll-list";
     import {VIDEO_SETTINGS} from "../../graphql/query/query.step1";
     import draggable from 'vuedraggable'
-    import {RESET_CAPTION, SELECT_VIDEO} from "../../graphql/mutation/mutation.step1";
+    import {RESET_CAPTION, SAVE_CAPTION, SELECT_VIDEO} from "../../graphql/mutation/mutation.step1";
 
     let timer;
     let oneLine = false;
@@ -188,26 +211,60 @@
         },
         methods: {
             addCaptionWord(captionWord, index) {
-                const word = Object.assign({}, captionWord[index])
-                const rootWord = word.rootWord;
-                Object.keys(rootWord).forEach((x) => {
-                    rootWord[x] = ''
-                });
-                word.fixedWord = '';
-                word.fixedMeaning = '';
+                const word = {rootWord: {word: '', meaning: ''}, fixedWord: '', fixedMeaning: ''}
                 captionWord.splice(index + 1, 0, word);
             },
             removeCaptionWord(index) {
                 const captionWord = this.video.captionSet[this.index].captionwordSet
                 captionWord.splice(index, 1);
             },
+            onUpdate() {
+                const index = this.index;
+                const caption = this.video.captionSet[index];
+                for (let i = 0; i < caption.captionwordSet.length; ++i) {
+                    caption.captionwordSet[i].order = i;
+                }
+            },
             saveCaption() {
-                const caption = this.video.captionSet[this.index];
+                const index = this.index;
+                const caption = this.video.captionSet[index];
+                const _this = this;
+                let rootWordList = [];
+                let captionWordList = [];
+                for (let i = 0; i < caption.captionwordSet.length; i++) {
+                    const captionWord = caption.captionwordSet[i]
+                    const rootWord = captionWord.rootWord
+                    captionWordList.push({
+                        id: captionWord.id,
+                        fixedWord: captionWord.fixedWord,
+                        fixedMeaning: captionWord.fixedMeaning,
+                        order: captionWord.order
+                    })
+                    rootWordList.push({word: rootWord.word, meaning: rootWord.meaning})
+                }
                 if (confirm('保存しますか？')) {
-                    this.$apollo.mutate(
-                    )
-                    console.log(caption)
-                    alert('saved');
+                    _this.$apollo.mutate({
+                            mutation: SAVE_CAPTION,
+                            variables: {
+                                captionInput: {
+                                    id: caption.id,
+                                    index: index,
+                                    startTime: caption.startTime,
+                                    endTime: caption.endTime,
+                                    text: caption.text,
+                                },
+                                captionWordInputs: captionWordList,
+                                wordInputs: rootWordList,
+                            },
+                            update: (store, {data: {saveCaption}}) => {
+                                const data = store.readQuery({query: VIDEO_SETTINGS});
+                                data.video.captionSet[index] = saveCaption.caption;
+                                store.writeQuery({query: VIDEO_SETTINGS, data});
+                            }
+                        }
+                    ).then(() => {
+                        alert('saved');
+                    })
                 }
             },
             resetCaption() {

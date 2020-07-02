@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  backend:
+  backend: &backend
     container_name: backend
     restart: always
     build:
@@ -36,15 +36,8 @@ services:
     ports:
       - 6379:6379
   celery:
+    <<: *backend
     container_name: celery
-    restart: always
-    build:
-      context: ./app
-      dockerfile: Dockerfile
-    env_file:
-      - env/.env.dev
-    volumes:
-      - ./app/:/usr/src/app/
     ports: []
     command: celery -A backend worker -l info
     depends_on:

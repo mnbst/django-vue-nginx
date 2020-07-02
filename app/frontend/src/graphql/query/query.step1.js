@@ -94,6 +94,7 @@ query ($videoHref: String="") {
       text
       captionwordSet {
         id
+        order
         rootWord {
           word
           meaning
