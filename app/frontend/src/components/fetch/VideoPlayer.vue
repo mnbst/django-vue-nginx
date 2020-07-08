@@ -54,12 +54,6 @@
                                 ></v-progress-circular>
                             </div>
                             <div v-else class="col-12">
-                                <div class="mt-n4">
-                                    <v-btn color="primary" @click="saveCaption">保存</v-btn>
-                                    <v-btn class="ml-3" color="secondary"
-                                           @click="resetCaption">戻す
-                                    </v-btn>
-                                </div>
                                 <div class="row">
                                     <h3 class="mt-2">text</h3>
                                     <v-text-field
@@ -149,6 +143,28 @@
                                         </div>
                                     </transition-group>
                                 </draggable>
+                                <v-toolbar flat class="row float-right mt-10 action-buttons">
+                                    <v-btn icon>
+                                        <v-icon size="50" @click="--index">mdi-chevron-left-box
+                                        </v-icon>
+                                    </v-btn>
+                                    <v-btn v-if="!playingVideo" icon>
+                                        <v-icon size="50" @click="playOneCaption">mdi-play</v-icon>
+                                    </v-btn>
+                                    <v-btn v-else icon>
+                                        <v-icon size="50" @click="pauseOneCaption">
+                                            mdi-pause
+                                        </v-icon>
+                                    </v-btn>
+                                    <v-btn icon>
+                                        <v-icon size="50" @click="++index">mdi-chevron-right-box
+                                        </v-icon>
+                                    </v-btn>
+                                    <v-btn class="ml-3" color="primary" @click="saveCaption">保存</v-btn>
+                                    <v-btn class="ml-3" color="secondary"
+                                           @click="resetCaption">戻す
+                                    </v-btn>
+                                </v-toolbar>
                             </div>
                         </v-card>
                     </div>
@@ -194,6 +210,7 @@
                 dialog: false,
                 addDialog: false,
                 removeDialog: false,
+                playingVideo: false,
             }
         },
         computed: {
@@ -210,6 +227,19 @@
             video: VIDEO_SETTINGS,
         },
         methods: {
+            playOneCaption() {
+                const index = this.index
+                const caption = this.video.captionSet[index]
+                this.player.pauseVideo()
+                this.player.seekTo(caption.startTime / 1000)
+                oneLine = true
+                this.playingVideo = true;
+                this.player.playVideo()
+            },
+            pauseOneCaption() {
+                this.player.pauseVideo();
+                this.playingVideo = false;
+            },
             addCaptionWord(captionWord, index) {
                 const word = {rootWord: {word: '', meaning: ''}, fixedWord: '', fixedMeaning: ''}
                 captionWord.splice(index + 1, 0, word);
@@ -283,6 +313,9 @@
                     })
             },
             selectVideo: function (video) {
+                if (this.loadingCaption) {
+                    return
+                }
                 this.index = 0;
                 const _this = this;
                 const videoHref = video.videoHref;
@@ -343,6 +376,7 @@
                     const timeOut = stopTime - currentTime;
                     timer = setTimeout(function () {
                         _this.player.pauseVideo();
+                        _this.playingVideo = false;
                     }, timeOut);
                     oneLine = false
                 }
@@ -404,5 +438,11 @@
 
     .meaning::-webkit-scrollbar {
         display: none;
+    }
+
+    .action-buttons {
+        position: sticky;
+        bottom: 0;
+        z-index: 999;
     }
 </style>
