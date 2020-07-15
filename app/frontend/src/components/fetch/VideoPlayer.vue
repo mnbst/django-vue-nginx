@@ -44,131 +44,141 @@
                             </virtual-list>
                         </div>
                     </div>
-                    <div class="row pl-4">
-                        <v-card v-if="video" class="col-12 list mt-n3" color="white align-center">
-                            <div v-if="loadingCaptionWordSet===true" class="text-center">
-                                <v-progress-circular
-                                        :size="50"
-                                        color="primary"
-                                        indeterminate
-                                ></v-progress-circular>
-                            </div>
-                            <div v-else class="col-12">
-                                <div class="row">
-                                    <h3 class="mt-2">text</h3>
-                                    <v-text-field
-                                            class="my-n2 mx-5 ml-12"
-                                            type="text"
-                                            v-model="video.captionSet[index].text"
-                                    ></v-text-field>
+                    <div class="container">
+                        <div class="row pl-2">
+                            <v-card v-scroll v-if="video" class="col-12 list mt-n3" color="white align-center">
+                                <div v-if="loadingCaptionWordSet===true" class="text-center">
+                                    <v-progress-circular
+                                            :size="50"
+                                            color="primary"
+                                            indeterminate
+                                    ></v-progress-circular>
                                 </div>
-                                <div class="row">
-                                    <div class="col-6 my-n3">
-                                        <div class="row">
-                                            <h3>start time</h3>
-                                            <v-text-field
-                                                    class="my-n3 mx-5"
-                                                    min="0"
-                                                    step="1"
-                                                    type="number"
-                                                    v-model="video.captionSet[index].startTime"
-                                            ></v-text-field>
-                                        </div>
+                                <div v-else>
+                                    <div class="row">
+                                        <h3 class="mt-2">text</h3>
+                                        <v-text-field
+                                                class="my-n2 mx-5 ml-12"
+                                                type="text"
+                                                v-model="video.captionSet[index].text"
+                                        ></v-text-field>
                                     </div>
-                                    <div class="col-6 my-n3">
-                                        <div class="row">
-                                            <h3>end time</h3>
-                                            <v-text-field
-                                                    class="my-n3 mx-5"
-                                                    min="0"
-                                                    step="1"
-                                                    type="number"
-                                                    v-model="video.captionSet[index].endTime"
-                                            ></v-text-field>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div v-if="video.captionSet[index].captionwordSet.length===0">
-                                    <div class="col-1">
-                                        <div class="row">
-                                            <v-btn
-                                                    class="mb-n12 mt-n3"
-                                                    icon
-                                                    top
-                                                    color="grey lighten-1"
-                                                    v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,0)"
-                                            >
-                                                <v-icon dark>add_circle</v-icon>
-                                            </v-btn>
-                                        </div>
-                                    </div>
-                                </div>
-                                <draggable v-model="video.captionSet[index].captionwordSet" @update="onUpdate">
-                                    <transition-group>
-                                        <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
+                                    <div class="row">
+                                        <div class="col-6 my-n3">
                                             <div class="row">
-                                                <div class="col-1">
-                                                    <div class="row">
-                                                        <v-btn
-                                                                class="mb-n12 mt-n3"
-                                                                icon
-                                                                top
-                                                                color="grey lighten-1"
-                                                                v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,id)"
-                                                        >
-                                                            <v-icon dark>add_circle</v-icon>
-                                                        </v-btn>
-                                                        <v-btn
-                                                                class="mb-n12 mt-n3"
-                                                                icon
-                                                                top
-                                                                color="grey lighten-1"
-                                                                v-on:click="removeCaptionWord(id)"
-                                                        >
-                                                            <v-icon dark>remove_circle</v-icon>
-                                                        </v-btn>
+                                                <h3>start time</h3>
+                                                <v-text-field
+                                                        class="my-n3 mx-5"
+                                                        min="0"
+                                                        step="1"
+                                                        type="number"
+                                                        v-model="video.captionSet[index].startTime"
+                                                ></v-text-field>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 my-n3">
+                                            <div class="row">
+                                                <h3>end time</h3>
+                                                <v-text-field
+                                                        class="my-n3 mx-5"
+                                                        min="0"
+                                                        step="1"
+                                                        type="number"
+                                                        v-model="video.captionSet[index].endTime"
+                                                ></v-text-field>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="video.captionSet[index].captionwordSet.length===0">
+                                        <div class="col-1">
+                                            <div class="row">
+                                                <v-btn
+                                                        class="mb-n12 mt-n3"
+                                                        icon
+                                                        top
+                                                        color="grey lighten-1"
+                                                        v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,0)"
+                                                >
+                                                    <v-icon dark>add_circle</v-icon>
+                                                </v-btn>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <draggable v-model="video.captionSet[index].captionwordSet" @update="onUpdate">
+                                        <transition-group>
+                                            <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
+                                                <div class="row">
+                                                    <div class="col-1">
+                                                        <div class="row">
+                                                            <v-btn
+                                                                    class="mb-n12 mt-n3"
+                                                                    icon
+                                                                    top
+                                                                    color="grey lighten-1"
+                                                                    v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,id)"
+                                                            >
+                                                                <v-icon dark>add_circle</v-icon>
+                                                            </v-btn>
+                                                            <v-btn
+                                                                    class="mb-n12 mt-n3"
+                                                                    icon
+                                                                    top
+                                                                    color="grey lighten-1"
+                                                                    v-on:click="removeCaptionWord(id)"
+                                                            >
+                                                                <v-icon dark>remove_circle</v-icon>
+                                                            </v-btn>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="my-n2">
-                                                        <v-btn class="text-lowercase">{{word.fixedWord}}</v-btn>
+                                                    <div class="col-3">
+                                                        <div class="my-n2">
+                                                            <div class="text-lowercase">{{word.fixedWord}}</div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-8 meaning">
-                                                    <div class="mb-n2">
-                                                        {{word.fixedMeaning}}
+                                                    <div class="col-8 mr-0 meaning">
+                                                        <div class="my-n2">
+                                                            {{word.fixedMeaning}}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </transition-group>
-                                </draggable>
-                                <v-toolbar flat class="row float-right mt-10 action-buttons">
-                                    <v-btn icon>
-                                        <v-icon size="50" @click="previousPage">
-                                            mdi-chevron-left-box
-                                        </v-icon>
-                                    </v-btn>
-                                    <v-btn v-if="!playingVideo" icon>
-                                        <v-icon size="50" @click="playOneCaption">mdi-play</v-icon>
-                                    </v-btn>
-                                    <v-btn v-else icon>
-                                        <v-icon size="50" @click="pauseOneCaption">
-                                            mdi-pause
-                                        </v-icon>
-                                    </v-btn>
-                                    <span>index: {{index}}/{{video.captionSet.length-1}}</span>
-                                    <v-btn icon>
-                                        <v-icon size="50" @click="forwardPage">mdi-chevron-right-box
-                                        </v-icon>
-                                    </v-btn>
-                                    <v-btn class="ml-3" color="primary" @click="saveCaption">保存</v-btn>
-                                    <v-btn class="ml-3" color="secondary"
-                                           @click="resetCaption">戻す
-                                    </v-btn>
-                                </v-toolbar>
-                            </div>
-                        </v-card>
+                                        </transition-group>
+                                    </draggable>
+                                </div>
+                                <v-row class="mx-n8 action-buttons">
+                                    <v-col cols="12">
+                                        <v-toolbar flat dense class="mb-n6">
+                                            <v-spacer></v-spacer>
+                                            <v-card-actions>
+                                                <v-btn icon>
+                                                    <v-icon size="50" @click="previousPage">
+                                                        mdi-chevron-left-box
+                                                    </v-icon>
+                                                </v-btn>
+                                                <v-btn icon>
+                                                    <v-icon size="50" @click="forwardPage">mdi-chevron-right-box
+                                                    </v-icon>
+                                                </v-btn>
+                                                <v-btn v-if="!playingVideo" icon>
+                                                    <v-icon size="50" @click="playOneCaption">mdi-play</v-icon>
+                                                </v-btn>
+                                                <v-btn v-else icon>
+                                                    <v-icon size="50" @click="pauseOneCaption">
+                                                        mdi-pause
+                                                    </v-icon>
+                                                </v-btn>
+                                                <span>index: {{index}}/{{video.captionSet.length-1}}</span>
+                                                <v-btn class="ml-3" color="secondary"
+                                                       @click="resetCaption">戻す
+                                                </v-btn>
+                                                <v-btn class="ml-3" color="primary" @click="saveCaption">保存</v-btn>
+
+                                            </v-card-actions>
+                                        </v-toolbar>
+                                    </v-col>
+                                </v-row>
+                            </v-card>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-4 col-xl-12">
@@ -459,7 +469,7 @@
 
     .action-buttons {
         position: sticky;
+        margin-top: 160px;
         bottom: 0;
-        z-index: 999;
     }
 </style>
