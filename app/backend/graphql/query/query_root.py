@@ -47,5 +47,24 @@ class RootQuery(graphene.ObjectType):
     def resolve_settings(self, info, **kwargs):
         authority = kwargs.get("authority")
         if authority:
-            return FetchSetting.objects.get(authority=authority)
+            try:
+                settings = FetchSetting.objects.get(authority=authority)
+            except FetchSetting.DoesNotExist:
+                settings = self._initialize_settings()
+            return settings
         return None
+
+    @staticmethod
+    def _initialize_settings():
+        settings = FetchSetting(
+            authority="super",
+            excepted_href=[],
+            page_to_crawl=1,
+            language_limit=1,
+            minimum_sentence=10,
+            video_per_page=1,
+            video_to_delete=[],
+            video_to_renewal=[],
+        )
+        settings.save()
+        return settings

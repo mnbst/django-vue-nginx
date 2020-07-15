@@ -145,7 +145,8 @@
                                 </draggable>
                                 <v-toolbar flat class="row float-right mt-10 action-buttons">
                                     <v-btn icon>
-                                        <v-icon size="50" @click="--index">mdi-chevron-left-box
+                                        <v-icon size="50" @click="previousPage">
+                                            mdi-chevron-left-box
                                         </v-icon>
                                     </v-btn>
                                     <v-btn v-if="!playingVideo" icon>
@@ -156,8 +157,9 @@
                                             mdi-pause
                                         </v-icon>
                                     </v-btn>
+                                    <span>index: {{index}}/{{video.captionSet.length-1}}</span>
                                     <v-btn icon>
-                                        <v-icon size="50" @click="++index">mdi-chevron-right-box
+                                        <v-icon size="50" @click="forwardPage">mdi-chevron-right-box
                                         </v-icon>
                                     </v-btn>
                                     <v-btn class="ml-3" color="primary" @click="saveCaption">保存</v-btn>
@@ -227,7 +229,22 @@
             video: VIDEO_SETTINGS,
         },
         methods: {
+            previousPage() {
+                const index = this.index;
+                if (index > 0) {
+                    this.index--;
+                }
+            },
+            forwardPage() {
+                const index = this.index;
+                if (index <= this.video.captionSet.length) {
+                    this.index++;
+                }
+            },
             playOneCaption() {
+                if (!this.player) {
+                    return;
+                }
                 const index = this.index
                 const caption = this.video.captionSet[index]
                 this.player.pauseVideo()
