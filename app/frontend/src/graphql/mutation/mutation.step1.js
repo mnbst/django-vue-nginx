@@ -57,6 +57,11 @@ export const RESET_CAPTION = gql`
 mutation ($id: ID!) {
   resetCaption(id: $id) {
     caption {
+      id
+      index
+      startTime
+      endTime
+      text
       captionwordSet {
         id
         rootWord {

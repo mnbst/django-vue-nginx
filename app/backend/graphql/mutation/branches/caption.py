@@ -49,6 +49,13 @@ class SaveCaption(graphene.Mutation):
             return
         for caption_word in caption_word_inputs:
             instance: CaptionWord = CaptionWord.objects.get(id=caption_word.id)
+            captionword_set = instance.caption.captionword_set
+            if len(captionword_set) > len(caption_word_inputs):
+                surpluses = filter(
+                    lambda x: x.fixed_word != caption_word.fixed_word, captionword_set
+                )
+                for target in surpluses:
+                    return
             instance.fixed_word = caption_word.fixed_word
             instance.fixed_meaning = caption_word.fixed_meaning
             instance.order = caption_word.order

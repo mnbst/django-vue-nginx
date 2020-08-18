@@ -131,14 +131,20 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-3">
-                                                        <div class="my-n2">
-                                                            <div class="text-lowercase">{{word.fixedWord}}</div>
-                                                        </div>
+                                                        <v-btn class="px-2 mt-n3">{{word.rootWord.word}}
+                                                        </v-btn>
                                                     </div>
-                                                    <div class="col-8 mr-0 meaning">
-                                                        <div class="my-n2">
-                                                            {{word.fixedMeaning}}
-                                                        </div>
+                                                    <div class="col-2 my-n7">
+                                                        <v-text-field
+                                                                type="text"
+                                                                v-model="word.fixedWord"
+                                                        ></v-text-field>
+                                                    </div>
+                                                    <div class="col-6 my-n7">
+                                                        <v-text-field
+                                                                type="text"
+                                                                v-model="word.fixedMeaning"
+                                                        ></v-text-field>
                                                     </div>
                                                 </div>
                                             </div>
@@ -334,7 +340,23 @@
                         variables: {id: target.id},
                         update: (store, {data: {resetCaption}}) => {
                             const data = store.readQuery({query: VIDEO_SETTINGS});
-                            data.video.captionSet[index].captionwordSet = resetCaption.caption.captionwordSet;
+                            const renderedCaption = data.video.captionSet[index];
+                            const originalCaption = resetCaption.caption;
+                            renderedCaption.index = originalCaption.index;
+                            renderedCaption.id = originalCaption.id;
+                            renderedCaption.startTime = originalCaption.startTime;
+                            renderedCaption.end_time = originalCaption.end_time;
+                            renderedCaption.text = originalCaption.text;
+                            for (let i = 0; i < renderedCaption.captionwordSet.length; ++i) {
+                                const wordSet = renderedCaption.captionwordSet[i];
+                                const originalWordSet = originalCaption.captionwordSet[i];
+                                wordSet.id = originalWordSet.id;
+                                wordSet.order = originalWordSet.order;
+                                wordSet.fixedWord = originalWordSet.fixedWord;
+                                wordSet.fixedMeaning = originalWordSet.fixedMeaning;
+                                wordSet.rootWord.word = originalWordSet.rootWord.word;
+                                wordSet.rootWord.meaning = originalWordSet.rootWord.meaning;
+                            }
                             store.writeQuery({query: VIDEO_SETTINGS, data})
                         }
                     })
