@@ -55,7 +55,7 @@ export const VIDEO_OPTIMISTIC = {
     }
 }
 
-export const VIDEO_SETTINGS = gql`
+export const START_UP = gql`
 query ($videoHref: String="") {
   settings(authority: "super") {
     id
@@ -103,6 +103,12 @@ query ($videoHref: String="") {
         fixedMeaning
       }
     }
+  }
+  words {
+    id
+    wordIni
+    word
+    meaning
   }
 }
 `;

@@ -131,3 +131,34 @@ mutation ($captionInput: CaptionInput!, $captionWordInputs: [CaptionWordInput], 
   }
 }
 `;
+
+export const SEARCH_FOR_WORDS = gql`
+mutation($word:String){
+  searchForWords(word:$word){
+    words{
+      __typename
+      id
+      word
+      wordIni
+      meaning
+    }
+  }
+}
+`;
+
+export const SAVE_CAPTION_WORD = gql`
+mutation ($captionWordId: ID!, $rootWordId: ID!) {
+  saveCaptionWord(captionWordId: $captionWordId, rootWordId: $rootWordId) {
+    captionWord {
+      id
+      fixedWord
+      fixedMeaning
+      rootWord {
+        id
+        word
+        meaning
+      }
+    }
+  }
+}
+`;

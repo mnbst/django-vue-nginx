@@ -13,6 +13,7 @@ class Word(models.Model):
 
     class Meta:
         ordering = ["word"]
+        app_label = "dictionary_console"
 
     def __str__(self):
         return self.word
@@ -41,7 +42,7 @@ class CaptionWord(models.Model):
         "Caption", on_delete=models.CASCADE, db_column="caption_id", db_index=True
     )
     root_word = models.ForeignKey(
-        Word, on_delete=models.CASCADE, null=True, blank=True, db_column="word_id"
+        Word, on_delete=models.CASCADE, null=True, blank=True, db_column="word_id",
     )
     order = models.IntegerField(default=0)
     fixed_word = models.CharField(max_length=50, null=True, blank=True)
@@ -51,7 +52,7 @@ class CaptionWord(models.Model):
         ordering = ["order"]
 
     def __str__(self):
-        return str(self)
+        return self.fixed_word
 
 
 class Caption(models.Model):
@@ -69,7 +70,7 @@ class Caption(models.Model):
         ordering = ["index"]
 
     def __str__(self):
-        return str(self.text)
+        return self.text
 
 
 class FetchSetting(models.Model):

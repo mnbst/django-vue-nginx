@@ -207,7 +207,7 @@
 
 <script>
     import virtualList from "vue-virtual-scroll-list";
-    import {SETTING_OPTIMISTIC, VIDEO_SETTINGS, VIDEO_OPTIMISTIC} from "../../graphql/query/query.step1";
+    import {SETTING_OPTIMISTIC, START_UP, VIDEO_OPTIMISTIC} from "../../graphql/query/query.step1";
     import {CREATE_SETTINGS, EXCEPT_VIDEO} from "../../graphql/mutation/mutation.step1";
     import FetchData from "./FetchData";
     import VideoPlayer from "./VideoPlayer";
@@ -257,8 +257,8 @@
             virtualList
         },
         apollo: {
-            settings: VIDEO_SETTINGS,
-            videoList: VIDEO_SETTINGS,
+            settings: START_UP,
+            videoList: START_UP,
         },
         methods: {
             add_form(form) {
@@ -294,9 +294,9 @@
                                 }
                             },
                             update: (store, {data: {createSettings}}) => {
-                                const data = store.readQuery({query: VIDEO_SETTINGS});
+                                const data = store.readQuery({query: START_UP});
                                 data.settings = createSettings;
-                                store.writeQuery({query: VIDEO_SETTINGS, data})
+                                store.writeQuery({query: START_UP, data})
                             },
                             optimisticResponse: SETTING_OPTIMISTIC
                         });
@@ -351,13 +351,13 @@
                     mutation: EXCEPT_VIDEO,
                     variables: video,
                     update: (store, {data: {exceptVideo}}) => {
-                        const data = store.readQuery({query: VIDEO_SETTINGS});
+                        const data = store.readQuery({query: START_UP});
                         for (let prop in data) {
                             if (Object.prototype.hasOwnProperty.call(exceptVideo, prop)) {
                                 data[prop] = exceptVideo[prop];
                             }
                         }
-                        store.writeQuery({query: VIDEO_SETTINGS, data});
+                        store.writeQuery({query: START_UP, data});
                     },
                     optimisticResponse: VIDEO_OPTIMISTIC
                 }).then(() => {

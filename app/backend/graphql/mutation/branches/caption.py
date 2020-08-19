@@ -17,6 +17,9 @@ class CaptionWordInput(graphene.InputObjectType):
     fixed_meaning = graphene.String()
     order = graphene.Int()
 
+    def __str__(self):
+        return self.fixed_word
+
 
 class CaptionInput(graphene.InputObjectType):
     id = graphene.ID()
@@ -39,7 +42,10 @@ class SaveCaption(graphene.Mutation):
         if not word_inputs:
             return
         for word in word_inputs:
-            instance: Word = Word.objects.get(word=word.word)
+            try:
+                instance: Word = Word.objects.get(word=word.word)
+            except Word.DoesNotExist:
+                continue
             instance.meaning = word.meaning
             instance.save()
 
@@ -47,15 +53,20 @@ class SaveCaption(graphene.Mutation):
     def _save_caption_word_inputs(caption_word_inputs: [CaptionWord]):
         if not caption_word_inputs:
             return
+        fixed_words = list(
+            input_object.fixed_word for input_object in caption_word_inputs
+        )
+        caption_word_id = caption_word_inputs[0].id
+        caption_word_set = CaptionWord.objects.get(
+            id=caption_word_id
+        ).caption.captionword_set.all()
+        if len(caption_word_set) > len(caption_word_inputs):
+            for caption_word in caption_word_set:
+                str_caption_word = str(caption_word)
+                if str_caption_word not in fixed_words:
+                    caption_word.delete()
         for caption_word in caption_word_inputs:
             instance: CaptionWord = CaptionWord.objects.get(id=caption_word.id)
-            captionword_set = instance.caption.captionword_set
-            if len(captionword_set) > len(caption_word_inputs):
-                surpluses = filter(
-                    lambda x: x.fixed_word != caption_word.fixed_word, captionword_set
-                )
-                for target in surpluses:
-                    return
             instance.fixed_word = caption_word.fixed_word
             instance.fixed_meaning = caption_word.fixed_meaning
             instance.order = caption_word.order

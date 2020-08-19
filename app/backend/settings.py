@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # own
-    "backend.dictionary_console",
+    "backend.dictionary_console.apps.DictionaryConsoleConfig",
     # additional
     "channels",
     "channels_redis",

@@ -1,12 +1,10 @@
 import graphene
-from graphene_django import DjangoObjectType
-
 from ..object_types import *
 from ...dictionary_console.models import *
 
 
 class RootQuery(graphene.ObjectType):
-    word = graphene.List(WordType, word_ini=graphene.String(), word=graphene.String())
+    words = graphene.List(WordType, word_ini=graphene.String(), word=graphene.String())
     video = graphene.Field(VideoType, video_href=graphene.String())
     video_list = graphene.List(
         VideoType,
@@ -18,15 +16,19 @@ class RootQuery(graphene.ObjectType):
 
     caption_list = graphene.List(CaptionType, video_href=graphene.String())
 
-    def resolve_word(self, info, **kwargs):
+    def resolve_words(self, info, **kwargs):
         word_ini = kwargs.get("word_ini")
         word = kwargs.get("word")
         if word_ini and not word:
             return Word.objects.order_by("word").filter(word_ini=word_ini).all()
         elif word:
-            return Word.objects.order_by("word").filter(word=word).all()
+            return (
+                Word.objects.order_by("word")
+                .filter(word__istartswith=word, ng=False)[:20]
+                .all()
+            )
         else:
-            return Word.objects.order_by("word").filter()[:50].all()
+            return []
 
     def resolve_video(self, info, **kwargs):
         href = kwargs.get("video_href")

@@ -92,7 +92,7 @@
     import Vue from "vue";
     import VueNumberInput from "@chenfengyuan/vue-number-input";
     import virtualList from "vue-virtual-scroll-list";
-    import {SETTING_OPTIMISTIC, VIDEO_SETTINGS} from '../../graphql/query/query.step1'
+    import {SETTING_OPTIMISTIC, START_UP} from '../../graphql/query/query.step1'
     import {CREATE_SETTINGS} from '../../graphql/mutation/mutation.step1'
     import {getCaption} from "../../endpoints";
 
@@ -130,8 +130,8 @@
             "virtual-list": virtualList
         },
         apollo: {
-            settings: VIDEO_SETTINGS,
-            videoList: VIDEO_SETTINGS
+            settings: START_UP,
+            videoList: START_UP
         },
         methods: {
             add_form(form) {
@@ -146,9 +146,9 @@
                     mutation: CREATE_SETTINGS,
                     variables: setting,
                     update: (store, {data: {createSettings}}) => {
-                        const data = store.readQuery({query: VIDEO_SETTINGS});
+                        const data = store.readQuery({query: START_UP});
                         data.settings = createSettings;
-                        store.writeQuery({query: VIDEO_SETTINGS, data})
+                        store.writeQuery({query: START_UP, data})
                     },
                     optimisticResponse: SETTING_OPTIMISTIC
                 }).catch(e => {

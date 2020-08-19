@@ -46,7 +46,8 @@
                     </div>
                     <div class="container">
                         <div class="row pl-2">
-                            <v-card v-scroll v-if="video" class="col-12 list mt-n3" color="white align-center">
+                            <v-card v-scroll v-if="video" class="col-12 list mt-n4" height="360"
+                                    color="white align-center">
                                 <div v-if="loadingCaptionWordSet===true" class="text-center">
                                     <v-progress-circular
                                             :size="50"
@@ -56,15 +57,15 @@
                                 </div>
                                 <div v-else>
                                     <div class="row">
-                                        <h3 class="mt-2">text</h3>
+                                        <h3 class="">text</h3>
                                         <v-text-field
-                                                class="my-n2 mx-5 ml-12"
+                                                class="mt-n4 mx-5 ml-12"
                                                 type="text"
                                                 v-model="video.captionSet[index].text"
                                         ></v-text-field>
                                     </div>
                                     <div class="row">
-                                        <div class="col-6 my-n3">
+                                        <div class="col-6 my-n4">
                                             <div class="row">
                                                 <h3>start time</h3>
                                                 <v-text-field
@@ -76,7 +77,7 @@
                                                 ></v-text-field>
                                             </div>
                                         </div>
-                                        <div class="col-6 my-n3">
+                                        <div class="col-6 my-n4">
                                             <div class="row">
                                                 <h3>end time</h3>
                                                 <v-text-field
@@ -92,58 +93,40 @@
                                     <div v-if="video.captionSet[index].captionwordSet.length===0">
                                         <div class="col-1">
                                             <div class="row">
-                                                <v-btn
-                                                        class="mb-n12 mt-n3"
-                                                        icon
-                                                        top
-                                                        color="grey lighten-1"
-                                                        v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,0)"
-                                                >
-                                                    <v-icon dark>add_circle</v-icon>
-                                                </v-btn>
+                                                <add-word-button class="mt-n3"></add-word-button>
                                             </div>
                                         </div>
                                     </div>
                                     <draggable v-model="video.captionSet[index].captionwordSet" @update="onUpdate">
                                         <transition-group>
-                                            <div v-for="(word,id) in video.captionSet[index].captionwordSet" :key="id">
+                                            <div v-for="(captionWord,id) in video.captionSet[index].captionwordSet"
+                                                 :key="id">
                                                 <div class="row">
                                                     <div class="col-1">
-                                                        <div class="row">
-                                                            <v-btn
-                                                                    class="mb-n12 mt-n3"
-                                                                    icon
-                                                                    top
-                                                                    color="grey lighten-1"
-                                                                    v-on:click="addCaptionWord(video.captionSet[index].captionwordSet,id)"
-                                                            >
-                                                                <v-icon dark>add_circle</v-icon>
-                                                            </v-btn>
-                                                            <v-btn
-                                                                    class="mb-n12 mt-n3"
-                                                                    icon
-                                                                    top
-                                                                    color="grey lighten-1"
-                                                                    v-on:click="removeCaptionWord(id)"
-                                                            >
-                                                                <v-icon dark>remove_circle</v-icon>
-                                                            </v-btn>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-3">
-                                                        <v-btn class="px-2 mt-n3">{{word.rootWord.word}}
+                                                        <v-btn
+                                                                class="mb-n12 mt-n12"
+                                                                icon
+                                                                top
+                                                                color="grey lighten-1"
+                                                                v-on:click="removeCaptionWord(id)"
+                                                        >
+                                                            <v-icon dark>remove_circle</v-icon>
                                                         </v-btn>
                                                     </div>
-                                                    <div class="col-2 my-n7">
+                                                    <div class="col-2">
+                                                        <add-word-button :caption-word="captionWord" :order="id"
+                                                                         :caption-index="index"></add-word-button>
+                                                    </div>
+                                                    <div class="col-2 ml-12 my-n4">
                                                         <v-text-field
                                                                 type="text"
-                                                                v-model="word.fixedWord"
+                                                                v-model="captionWord.fixedWord"
                                                         ></v-text-field>
                                                     </div>
-                                                    <div class="col-6 my-n7">
+                                                    <div class="col-6 my-n4">
                                                         <v-text-field
                                                                 type="text"
-                                                                v-model="word.fixedMeaning"
+                                                                v-model="captionWord.fixedMeaning"
                                                         ></v-text-field>
                                                     </div>
                                                 </div>
@@ -174,11 +157,10 @@
                                                     </v-icon>
                                                 </v-btn>
                                                 <span>index: {{index}}/{{video.captionSet.length-1}}</span>
-                                                <v-btn class="ml-3" color="secondary"
-                                                       @click="resetCaption">戻す
-                                                </v-btn>
-                                                <v-btn class="ml-3" color="primary" @click="saveCaption">保存</v-btn>
-
+                                                <reset-caption-button :video="video"
+                                                                      :index="index"></reset-caption-button>
+                                                <save-caption-button :video="video"
+                                                                     :index="index"></save-caption-button>
                                             </v-card-actions>
                                         </v-toolbar>
                                     </v-col>
@@ -211,9 +193,12 @@
 
 <script>
     import virtualList from "vue-virtual-scroll-list";
-    import {VIDEO_SETTINGS} from "../../graphql/query/query.step1";
+    import {START_UP} from "../../graphql/query/query.step1";
     import draggable from 'vuedraggable'
-    import {RESET_CAPTION, SAVE_CAPTION, SELECT_VIDEO} from "../../graphql/mutation/mutation.step1";
+    import {SELECT_VIDEO} from "../../graphql/mutation/mutation.step1";
+    import AddWordButton from "../buttons/AddWord";
+    import SaveCaptionButton from "../buttons/SaveCaption";
+    import ResetCaptionButton from "../buttons/ResetCaption";
 
     let timer;
     let oneLine = false;
@@ -237,12 +222,15 @@
             }
         },
         components: {
+            ResetCaptionButton,
+            SaveCaptionButton,
+            AddWordButton,
             "virtual-list": virtualList,
             draggable
         },
         apollo: {
-            videoList: VIDEO_SETTINGS,
-            video: VIDEO_SETTINGS,
+            videoList: START_UP,
+            video: START_UP,
         },
         methods: {
             previousPage() {
@@ -264,18 +252,18 @@
                 const index = this.index
                 const caption = this.video.captionSet[index]
                 this.player.pauseVideo()
+                this.playingVideo = false
                 this.player.seekTo(caption.startTime / 1000)
                 oneLine = true
-                this.playingVideo = true;
                 this.player.playVideo()
+                this.playingVideo = true;
             },
             pauseOneCaption() {
+                if (!this.player) {
+                    return;
+                }
                 this.player.pauseVideo();
                 this.playingVideo = false;
-            },
-            addCaptionWord(captionWord, index) {
-                const word = {rootWord: {word: '', meaning: ''}, fixedWord: '', fixedMeaning: ''}
-                captionWord.splice(index + 1, 0, word);
             },
             removeCaptionWord(index) {
                 const captionWord = this.video.captionSet[this.index].captionwordSet
@@ -287,79 +275,6 @@
                 for (let i = 0; i < caption.captionwordSet.length; ++i) {
                     caption.captionwordSet[i].order = i;
                 }
-            },
-            saveCaption() {
-                const index = this.index;
-                const caption = this.video.captionSet[index];
-                const _this = this;
-                let rootWordList = [];
-                let captionWordList = [];
-                for (let i = 0; i < caption.captionwordSet.length; i++) {
-                    const captionWord = caption.captionwordSet[i]
-                    const rootWord = captionWord.rootWord
-                    captionWordList.push({
-                        id: captionWord.id,
-                        fixedWord: captionWord.fixedWord,
-                        fixedMeaning: captionWord.fixedMeaning,
-                        order: captionWord.order
-                    })
-                    rootWordList.push({word: rootWord.word, meaning: rootWord.meaning})
-                }
-                if (confirm('保存しますか？')) {
-                    _this.$apollo.mutate({
-                            mutation: SAVE_CAPTION,
-                            variables: {
-                                captionInput: {
-                                    id: caption.id,
-                                    index: index,
-                                    startTime: caption.startTime,
-                                    endTime: caption.endTime,
-                                    text: caption.text,
-                                },
-                                captionWordInputs: captionWordList,
-                                wordInputs: rootWordList,
-                            },
-                            update: (store, {data: {saveCaption}}) => {
-                                const data = store.readQuery({query: VIDEO_SETTINGS});
-                                data.video.captionSet[index] = saveCaption.caption;
-                                store.writeQuery({query: VIDEO_SETTINGS, data});
-                            }
-                        }
-                    ).then(() => {
-                        alert('saved');
-                    })
-                }
-            },
-            resetCaption() {
-                const video = this.video;
-                const index = this.index;
-                const target = video.captionSet[index];
-                this.$apollo.mutate(
-                    {
-                        mutation: RESET_CAPTION,
-                        variables: {id: target.id},
-                        update: (store, {data: {resetCaption}}) => {
-                            const data = store.readQuery({query: VIDEO_SETTINGS});
-                            const renderedCaption = data.video.captionSet[index];
-                            const originalCaption = resetCaption.caption;
-                            renderedCaption.index = originalCaption.index;
-                            renderedCaption.id = originalCaption.id;
-                            renderedCaption.startTime = originalCaption.startTime;
-                            renderedCaption.end_time = originalCaption.end_time;
-                            renderedCaption.text = originalCaption.text;
-                            for (let i = 0; i < renderedCaption.captionwordSet.length; ++i) {
-                                const wordSet = renderedCaption.captionwordSet[i];
-                                const originalWordSet = originalCaption.captionwordSet[i];
-                                wordSet.id = originalWordSet.id;
-                                wordSet.order = originalWordSet.order;
-                                wordSet.fixedWord = originalWordSet.fixedWord;
-                                wordSet.fixedMeaning = originalWordSet.fixedMeaning;
-                                wordSet.rootWord.word = originalWordSet.rootWord.word;
-                                wordSet.rootWord.meaning = originalWordSet.rootWord.meaning;
-                            }
-                            store.writeQuery({query: VIDEO_SETTINGS, data})
-                        }
-                    })
             },
             selectVideo: function (video) {
                 if (this.loadingCaption) {
@@ -374,9 +289,9 @@
                         mutation: SELECT_VIDEO,
                         variables: {videoHref: videoHref},
                         update: (store, {data: {selectVideo}}) => {
-                            const data = store.readQuery({query: VIDEO_SETTINGS});
+                            const data = store.readQuery({query: START_UP});
                             data.video = selectVideo.video
-                            store.writeQuery({query: VIDEO_SETTINGS, data})
+                            store.writeQuery({query: START_UP, data})
                         }
                     }).then(() => {
                     _this.loadingCaption = false
@@ -386,9 +301,11 @@
                 this.index = index
                 const caption = this.video.captionSet.find(element => element.index === index)
                 this.player.pauseVideo()
+                this.playingVideo = false
                 this.player.seekTo(caption.startTime / 1000)
                 oneLine = true
                 this.player.playVideo()
+                this.playingVideo = true
             },
             playing: function (event) {
                 clearTimeout(timer)
@@ -476,17 +393,6 @@
 
     .videoPlayer {
         height: 760px;
-    }
-
-    .meaning {
-        width: 100%;
-        overflow-x: scroll;
-        white-space: nowrap;
-        border-bottom: solid 1px;
-    }
-
-    .meaning::-webkit-scrollbar {
-        display: none;
     }
 
     .action-buttons {

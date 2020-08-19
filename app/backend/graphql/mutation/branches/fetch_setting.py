@@ -30,7 +30,7 @@ class CreateSettings(graphene.Mutation):
         settings_input = SettingsInput(required=True)
 
     def mutate(self, info, settings_input):
-        settings = FetchSetting.objects.get(id=settings_input['id'])
+        settings = FetchSetting.objects.get(id=settings_input["id"])
         settings.excepted_href = settings_input.excepted_href
         settings.page_to_crawl = settings_input.page_to_crawl
         settings.language_limit = settings_input.language_limit
