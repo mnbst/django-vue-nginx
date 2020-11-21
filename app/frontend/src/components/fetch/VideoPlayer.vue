@@ -42,7 +42,7 @@
                   </a>
                 </div>
               </virtual-list>
-              <v-row class="action-buttons">
+              <v-row v-if="video" class="action-buttons">
                 <v-col cols="12">
                   <v-toolbar flat class="">
                     <v-spacer></v-spacer>
@@ -122,9 +122,9 @@
                     </div>
                   </div>
                   <div class="row">
-                    <h3 class="root-word">root</h3>
-                    <h3 class="word">word</h3>
-                    <h3 class="meaning">meaning</h3>
+                    <h3 class="root col-4">root</h3>
+                    <h3 class="word col-2">word</h3>
+                    <h3 class="meaning col-6">meaning</h3>
                   </div>
                   <div v-if="video.captionSet[index].captionwordSet.length===0">
                     <div class="col-1">
@@ -400,15 +400,18 @@ export default {
   height: 760px;
 }
 
-.root-word {
-  margin-left: 150px;
+.root {
+  display: flex;
+  justify-content: center;
 }
 
 .word {
-  padding-right: 100px;
+  display: flex;
+  justify-content: center;
 }
 
 .meaning {
-  padding-right: 200px;
+  display: flex;
+  justify-content: center;
 }
 </style>
