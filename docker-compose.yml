@@ -39,7 +39,7 @@ services:
     <<: *backend
     container_name: celery
     ports: []
-    command: celery -A backend worker -l info
+    command: celery -A backend worker -l INFO
     depends_on:
       - db
       - redis

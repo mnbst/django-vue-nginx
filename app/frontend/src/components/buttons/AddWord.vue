@@ -7,12 +7,18 @@
         </v-btn>
         <div id="overlay" v-show="showAddWordModal">
             <div id="content">
-                <h3>原型を入力してください</h3>
+                <div class="row">
+                    <h3 class="col-11">単語の原型を入力してください</h3>
+                    <button class="col-1 close" type="button" aria-label="Close"
+                            @click="showAddWordModal=false">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <p></p>
                 <v-text-field
-                        v-model="captionWord.rootWord.word"
-                        @input="searchForWords"
+                        v-model.trim="captionWord.rootWord.word"
                 ></v-text-field>
+                <v-btn class="mb-3" color="primary" @click="searchForWords">検索</v-btn>
                 <v-card id="words-contents">
                     <div v-if="words">
                         <div v-for="(word,id) in words" :key="id">
