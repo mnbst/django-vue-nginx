@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.8.2-slim-buster
+FROM python:3.9.0-slim-buster
 
 ENV HOME=/usr/src/app
 
@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
 RUN apt update \
-    && apt install gcc netcat -y libffi-dev\
+    && apt install gcc netcat -y libxml2-dev -y libxslt-dev\
     && apt -y clean \
     && rm -rf /var/lib/apt/lists/*
 

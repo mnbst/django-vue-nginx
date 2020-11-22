@@ -7,25 +7,49 @@
                 <v-spacer></v-spacer>
             </v-app-bar>
             <v-content>
-                <selectable-video-list/>
+                <transition name="fade" mode="out-in">
+                    <router-view/>
+                </transition>
             </v-content>
         </v-app>
     </div>
 </template>
 
 <script>
+    import Home from "./components/Home";
+    import VideoPlayer from "./components/fetch/VideoPlayer";
+    import SelectableVideoList from "./components/fetch/CreateVideoList";
+    import FetchData from "./components/fetch/FetchData";
     import Vue from "vue";
+    import VueRouter from "vue-router";
     import VueYoutube from 'vue-youtube'
-    import SelectableVideoList from "@/components/fetch/CreateVideoList";
+    // import {Carousel, Slide} from 'vue-carousel';
 
     Vue.use(VueYoutube)
+    Vue.use(VueRouter);
+
+    const routes = [
+        {path: "/data", component: Home},
+        {path: "/videoPlayer", component: VideoPlayer},
+        {path: "/fetchData", component: FetchData},
+        {path: "/selectableVideoList", component: SelectableVideoList}
+    ];
+
+    const router = new VueRouter({routes});
+    router.replace("/selectableVideoList");
 
     export default {
         name: "App",
-      components: {SelectableVideoList},
+
+        router,
 
         data: () => ({
             drawer: false
         }),
+        // components: {
+        //     Carousel,
+        //     Slide
+        // }
+
     };
 </script>
