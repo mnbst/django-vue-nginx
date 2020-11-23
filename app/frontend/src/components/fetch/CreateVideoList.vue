@@ -43,13 +43,13 @@
             </div>
           </div>
         </div>
-        <div class="col-lg-4 col-xl-12 ml-n7">
+        <div class="col-lg-4 col-xl-12 pl-n10">
           <v-row>
             <v-checkbox class="ml-7 my-n3" v-model="checkbox" :label="`全選択`"
                         @change="checkAll($event)"></v-checkbox>
           </v-row>
-          <virtual-list v-if="videoList" :size="26" :remain="24">
-            <ul v-for="item in videoList" :key="item.id">
+          <div class="video-list">
+            <ul v-for="item in videoList" :key="item.videoHref">
               <div v-if="!item.hasCaption" class="row">
                 <v-checkbox class="mx-1 left" v-model="item.want"></v-checkbox>
                 <img class="col-4  mx-n5" @click="setVideoId(item)"
@@ -62,9 +62,8 @@
                   <p class="grey--text">{{ item.videoTime }}</p>
                 </div>
               </div>
-
             </ul>
-          </virtual-list>
+          </div>
         </div>
         <div class=" col-lg-4 col-xl-12 px-4">
           <v-card class="col-12" color="white align-center">
@@ -206,14 +205,13 @@
 </template>
 
 <script>
-import virtualList from "vue-virtual-scroll-list";
 import {SETTING_OPTIMISTIC, START_UP, VIDEO_OPTIMISTIC} from "@/graphql/query/query.step1";
 import {CREATE_SETTINGS, EXCEPT_VIDEO} from "@/graphql/mutation/mutation.step1";
 import FetchData from "./FetchData";
 import VideoPlayer from "./VideoPlayer";
 import {getVideoList} from "@/endpoints";
 
-const reg = new RegExp(/[!-/:-@[-`{-㿿]/g);
+const reg = new RegExp(/[!-/:-@{-㿿]/g); //TODO
 const promise = (setting) => new Promise((resolve) => {
   if (setting.authority) {
     Object.keys(setting).forEach(function (prop) {
@@ -254,7 +252,6 @@ export default {
   components: {
     VideoPlayer,
     FetchData,
-    virtualList
   },
   apollo: {
     settings: START_UP,
@@ -333,14 +330,15 @@ export default {
     setVideoList(message) {
       try {
         const json = JSON.parse(message.data)
-        const videoExist = this.videoList.filter(video => video.videoTitle === json.videoTitle)
-        if (videoExist.length > 0) {
+        const videoExist = this.videoList.filter(video => video.videoTitle === json.videoTitle).length > 0
+        if (videoExist) {
           return null;
         } else {
           this.videoList.push(json);
         }
       } catch (_) {
-        this.videoList.push({id: this.videoList.length, text: message.data});
+        return null
+        // this.videoList.push({id: this.videoList.length, text: message.data});
       }
     },
     addExceptedList(video) {
@@ -383,6 +381,13 @@ export default {
   border: 1px solid lightgray;
   border-radius: 4px;
   height: 100px;
+  overflow-y: auto;
+}
+
+.video-list {
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  height: 630px;
   overflow-y: auto;
 }
 </style>

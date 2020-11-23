@@ -27,8 +27,8 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.environ.get("DEBUG", default=0))
-DEBUG_CELERY = 0
+DEBUG = 1
+DEBUG_CELERY = 1
 
 END_MESSAGE = "all done😀"
 

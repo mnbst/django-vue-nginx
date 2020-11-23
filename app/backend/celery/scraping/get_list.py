@@ -110,7 +110,7 @@ class GetVideoList:
         self.settings = settings
         self.channel_layer = get_channel_layer()
 
-    def __send_to_websocket(self, group_name: str, **kwargs):
+    def __send_to_websocket(self, group_name: str, *args, **kwargs):
         data = kwargs.get("data", None)
         message = kwargs.get("message", None)
         if data:
@@ -121,7 +121,11 @@ class GetVideoList:
         else:
 
             async_to_sync(self.channel_layer.group_send)(
-                group_name, {"type": "get.video.list.messages", "text": message,}
+                group_name,
+                {
+                    "type": "get.video.list.messages",
+                    "text": message,
+                },
             )
 
     def get_video_list(self):

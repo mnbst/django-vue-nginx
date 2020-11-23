@@ -3,6 +3,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.conf import settings
 from django.conf.urls import url
+from django.core.asgi import get_asgi_application
 
 from .consumers import (
     GetVideoListConsumer,
@@ -21,13 +22,13 @@ application = ProtocolTypeRouter(
                             r"^get_video_list",
                             DebugGetVideoListConsumer.as_asgi()
                             if settings.DEBUG_CELERY
-                            else GetVideoListConsumer,
+                            else GetVideoListConsumer.as_asgi(),
                         ),
                         url(
                             r"^get_caption",
                             DebugGetCaptionConsumer.as_asgi()
                             if settings.DEBUG_CELERY
-                            else GetCaptionConsumer,
+                            else GetCaptionConsumer.as_asgi(),
                         ),
                     ]
                 )
