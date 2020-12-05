@@ -88,7 +88,7 @@ class GetCaptionConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
 
-    async def receive(self, text_data=None):
+    async def receive(self, text_data=None, bytes_data=None):
         print("receive", text_data)
         data = json.loads(text_data)
         self.result = get_caption.delay(data=data)
@@ -132,7 +132,7 @@ class DebugGetCaptionConsumer(WebsocketConsumer):
         )
         raise StopConsumer()
 
-    def receive(self, text_data=None):
+    def receive(self, text_data=None, bytes_data=None):
         print("receive", text_data)
         self.send(text_data="starting...")
         data = json.loads(text_data)
