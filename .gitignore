@@ -1,0 +1,8 @@
+env
+.vscode/*
+.cache/
+postgres_data
+posts-data.json
+.idea
+memo.text
+app/**/firebase_sdk.json
