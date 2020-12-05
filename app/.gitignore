@@ -11,5 +11,3 @@ yarn-error.log
 *.njsproj
 *.sln
 .cache/
-.app/**/.bash_history
-.app/**/firestore_sdk.json

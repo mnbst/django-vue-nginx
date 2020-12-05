@@ -6,3 +6,4 @@ posts-data.json
 .idea
 memo.text
 app/**/firebase_sdk.json
+app/**/.bash_history
