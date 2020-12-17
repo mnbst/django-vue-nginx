@@ -38,7 +38,7 @@ module.exports = {
         config
             .plugin('BundleTracker')
             .use(BundleTracker, [{
-                filename: './webpack-stats.json'
+                filename: './webpack/webpack-stats.json'
             }]);
 
         config.resolve.alias

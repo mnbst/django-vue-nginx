@@ -5,5 +5,5 @@ postgres_data
 posts-data.json
 .idea
 memo.text
-app/**/firebase_sdk.json
-app/**/.bash_history
+backend/**/firebase_sdk.json
+backend/**/.bash_history

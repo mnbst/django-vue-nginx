@@ -5,10 +5,11 @@ services:
     container_name: backend
     restart: always
     build:
-      context: ./app
+      context: backend
       dockerfile: Dockerfile
     volumes:
-      - ./app/:/usr/src/app/
+      - ./backend/:/usr/src/app/
+      - webpack-stats:/usr/src/app/webpack
     ports:
       - 8000:8000
     env_file:
@@ -38,8 +39,8 @@ services:
   celery:
     <<: *backend
     container_name: celery
-    ports: []
-    command: celery -A backend worker -l INFO
+    ports: [ ]
+    command: celery -A api worker -l INFO
     depends_on:
       - db
       - redis
@@ -47,13 +48,16 @@ services:
   frontend:
     container_name: frontend
     restart: on-failure:1
-    build: ./app/frontend
+    build: frontend
     volumes:
-      - ./app/frontend/src:/usr/src/app/frontend/src
-      - ./app/frontend/package.json:/usr/src/app/frontend/package.json
+      - ./frontend/src:/usr/src/app/src
+      - ./frontend/package.json:/usr/src/app/package.json
+      - webpack-stats:/usr/src/app/webpack
     ports:
       - 8080:8080
     stdin_open: true
     tty: true
     environment:
       - CHOKIDAR_USEPOLLING=true
+volumes:
+  webpack-stats:
