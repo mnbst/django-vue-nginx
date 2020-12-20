@@ -2,7 +2,7 @@ const BundleTracker = require("webpack-bundle-tracker");
 
 const pages = {
     'application': {
-        entry: '../src/main.js',
+        entry: './src/main.js',
         chunks: ['chunk-vendors']
     }
 };
@@ -13,7 +13,7 @@ module.exports = {
     productionSourceMap: false,
     publicPath: process.env.NODE_ENV === 'production' ?
         '' : 'http://localhost:8080/',
-    outputDir: '../public/vue',
+    outputDir: './public/vue',
 
     chainWebpack: config => {
 
@@ -38,7 +38,7 @@ module.exports = {
         config
             .plugin('BundleTracker')
             .use(BundleTracker, [{
-                filename: './webpack-stats.json'
+                filename: './webpack/webpack-stats.json'
             }]);
 
         config.resolve.alias
