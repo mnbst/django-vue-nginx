@@ -69,6 +69,8 @@
                                             :index="index"></reset-caption-button>
                       <save-caption-button :video="video"
                                            :index="index"></save-caption-button>
+                      <caption-add-remove-buttons :caption-set="video.captionSet"
+                                                  :index="index"></caption-add-remove-buttons>
                     </v-card-actions>
                   </v-toolbar>
                 </v-col>
@@ -198,12 +200,13 @@
 
 <script>
 import virtualList from "vue-virtual-scroll-list";
-import {START_UP} from "../../graphql/query/query.step1";
+import {START_UP} from "@/graphql/query/query.step1";
 import draggable from 'vuedraggable'
-import {SELECT_VIDEO} from "../../graphql/mutation/mutation.step1";
+import {SELECT_VIDEO} from "@/graphql/mutation/mutation.step1";
 import AddWordButton from "../buttons/AddWord";
 import SaveCaptionButton from "../buttons/SaveCaption";
 import ResetCaptionButton from "../buttons/ResetCaption";
+import CaptionAddRemoveButtons from "@/components/buttons/CaptionAdd";
 
 let timer;
 let oneLine = false;
@@ -227,6 +230,7 @@ export default {
     }
   },
   components: {
+    CaptionAddRemoveButtons,
     ResetCaptionButton,
     SaveCaptionButton,
     AddWordButton,

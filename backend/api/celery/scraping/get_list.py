@@ -136,7 +136,6 @@ class GetVideoList:
             cache=MemoryCache(),
         )
 
-        # Call worde search.list mewordod to retrieve results matching worde specified
         try:
             search_response = (
                 youtube.search()

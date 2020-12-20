@@ -3,8 +3,8 @@
 </template>
 
 <script>
-    import {SAVE_CAPTION} from "../../graphql/mutation/mutation.step1";
-    import {START_UP} from "../../graphql/query/query.step1";
+    import {SAVE_CAPTION} from "@/graphql/mutation/mutation.step1";
+    import {START_UP} from "@/graphql/query/query.step1";
 
     export default {
         name: "SaveCaptionButton",

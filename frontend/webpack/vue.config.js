@@ -2,7 +2,7 @@ const BundleTracker = require("webpack-bundle-tracker");
 
 const pages = {
     'application': {
-        entry: './src/main.js',
+        entry: '../src/main.js',
         chunks: ['chunk-vendors']
     }
 };
@@ -38,7 +38,7 @@ module.exports = {
         config
             .plugin('BundleTracker')
             .use(BundleTracker, [{
-                filename: './webpack/webpack-stats.json'
+                filename: './webpack-stats.json'
             }]);
 
         config.resolve.alias
