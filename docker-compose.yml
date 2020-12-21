@@ -1,15 +1,16 @@
 version: "3.7"
 
 services:
-  backend: &backend
-    container_name: backend
+  django: &django
+    container_name: django
     restart: always
     build:
-      context: backend
+      context: django
       dockerfile: Dockerfile
     volumes:
-      - ./backend/:/usr/src/app/
-      - webpack-stats:/usr/src/app/webpack
+      - ./django/:/usr/src/app/
+      - webpack-stats:/usr/src/webpack
+      - webpack-stats:/opt/project/webpack
     ports:
       - 8000:8000
     env_file:
@@ -37,22 +38,21 @@ services:
     ports:
       - 6379:6379
   celery:
-    <<: *backend
+    <<: *django
     container_name: celery
     ports: [ ]
     command: celery -A api worker -l INFO
     depends_on:
       - db
       - redis
-      - backend
-  frontend:
-    container_name: frontend
+  vue:
+    container_name: vue
     restart: on-failure:1
-    build: frontend
+    build: vue
     volumes:
-      - ./frontend/src:/usr/src/app/src
-      - ./frontend/package.json:/usr/src/app/package.json
-      - webpack-stats:/usr/src/app/webpack
+      - ./vue/src:/usr/src/app/src
+      - ./vue/package.json:/usr/src/app/package.json
+      - webpack-stats:/usr/src/webpack
     ports:
       - 8080:8080
     stdin_open: true

@@ -24,12 +24,12 @@ RUN pip install -r requirements.txt
 RUN python -m nltk.downloader -d /usr/share/nltk_data punkt
 
 # copy project
-COPY . /usr/src/app/
+COPY . /usr/src/app
 
 # copy entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
 
-RUN chmod +x /usr/src/app/entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 # run entrypoint.sh 
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]       
+ENTRYPOINT ["./entrypoint.sh"]

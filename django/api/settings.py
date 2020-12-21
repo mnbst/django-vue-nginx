@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import ssl
+from pathlib import Path
 
 from celery import current_app
 
@@ -141,7 +142,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-WEBPACK_DIR = os.path.join(BASE_DIR, "webpack")
+WEBPACK_DIR = os.path.join(Path(BASE_DIR).parent, "webpack")
 
 WEBPACK_LOADER = {
     "DEFAULT": {

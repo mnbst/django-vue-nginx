@@ -3,7 +3,7 @@ version: "3.7"
 services:
   web:
     build:
-      context: backend
+      context: django
       dockerfile: Dockerfile.prod
     command: gunicorn api.asgi:application --bind 0.0.0.0:8000
     volumes:
@@ -24,13 +24,13 @@ services:
     container_name: celery
     restart: always
     build:
-      context: backend
+      context: django
       dockerfile: Dockerfile
     env_file:
       - env/.env.prod
     volumes:
       - ./api/:/usr/src/api/
-      - frontend:/usr/src/api/frontend
+      - vue:/usr/src/api/vue
     ports: []
     command: celery -A api worker -l info
     depends_on:

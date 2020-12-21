@@ -29,9 +29,7 @@
               </div>
             </div>
             <div class="col-lg-6 col-xl-12">
-              <virtual-list v-if="video" class="virtual-list pl-4 font-weight-black" :size="20"
-                            :remain="11"
-                            :start="index-3">
+              <div v-if="video" class="captions-list">
                 <div v-for="caption in video.captionSet" :key="caption.index">
                   <a v-if="caption.index===index" class="blue--text"
                      @click="jumpToIndex(caption.index)">
@@ -41,7 +39,7 @@
                     {{ caption.text }}
                   </a>
                 </div>
-              </virtual-list>
+              </div>
               <v-row v-if="video" class="action-buttons">
                 <v-col cols="12">
                   <v-toolbar flat class="">
@@ -52,6 +50,8 @@
                           mdi-chevron-left-box
                         </v-icon>
                       </v-btn>
+                      <caption-add-remove-buttons :caption-set="video.captionSet"
+                                                  :index="index"></caption-add-remove-buttons>
                       <v-btn icon>
                         <v-icon size="50" @click="forwardPage">mdi-chevron-right-box
                         </v-icon>
@@ -69,8 +69,6 @@
                                             :index="index"></reset-caption-button>
                       <save-caption-button :video="video"
                                            :index="index"></save-caption-button>
-                      <caption-add-remove-buttons :caption-set="video.captionSet"
-                                                  :index="index"></caption-add-remove-buttons>
                     </v-card-actions>
                   </v-toolbar>
                 </v-col>
@@ -138,7 +136,7 @@
                   <draggable v-model="video.captionSet[index].captionwordSet" @update="onUpdate">
                     <transition-group>
                       <div v-for="(captionWord,id) in video.captionSet[index].captionwordSet"
-                           :key="id">
+                           :key="captionWord.id">
                         <div class="row">
                           <div class="col-1">
                             <v-btn
@@ -199,7 +197,6 @@
 </template>
 
 <script>
-import virtualList from "vue-virtual-scroll-list";
 import {START_UP} from "@/graphql/query/query.step1";
 import draggable from 'vuedraggable'
 import {SELECT_VIDEO} from "@/graphql/mutation/mutation.step1";
@@ -234,7 +231,6 @@ export default {
     ResetCaptionButton,
     SaveCaptionButton,
     AddWordButton,
-    "virtual-list": virtualList,
     draggable
   },
   apollo: {
@@ -371,9 +367,12 @@ export default {
   width: 100%;
 }
 
-.virtual-list {
+.captions-list {
   border: 1px solid;
-  border-radius: 4px
+  border-radius: 4px;
+  overflow: hidden;
+  overflow-y: scroll;
+  height: 220px
 }
 
 .thumbnail img {

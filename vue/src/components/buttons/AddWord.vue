@@ -1,5 +1,5 @@
 <template>
-    <div class="row">
+    <div v-if="captionWord" class="row">
         <v-btn class="text-lowercase col-12"
                @click="openModal"
                color="grey lighten-1"
