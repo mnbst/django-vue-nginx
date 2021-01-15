@@ -1,16 +1,16 @@
 # docker+django+vue+nginx
 
 ## CONCEPT
-Sending message from Celery task to Channels   
+インドネシア語学習サイトの管理画面です
 
-## Getting Started
+## SETUP
 
 ```
 cd frontend
 npm install
 ```
-you need env/.env.dev or env/.env.prod file.  
-example below
+env/.env.dev
+を以下のようにする
 
 ```
 DEBUG=1
@@ -23,16 +23,16 @@ SQL_PASSWORD=hello_django
 SQL_HOST=db
 SQL_PORT=5432
 DATABASE=postgres
-DEVELOPER_KEY=change me
+DEVELOPER_KEY={グーグルデベロッパーキー}
 ```
-DEVELOPER_KEY is [api key](https://developers.google.com/youtube/v3/getting-started)
+DEVELOPER_KEY → [api key](https://developers.google.com/youtube/v3/getting-started)
 
 ### dev 
 
 ```
 docker-compose -f docker-compose.yml up -d --build
 ``` 
-CELERY tasks can be debug, if you use pycharm remote debug and set DEBUG_CELERY=True in app/backend/settings.py  
+app/backend/settings.pyでDEBUG_CELERY=Trueとすればceleryタスクをでバックできます。
 http://localhost:8000/
 ### prod 
 ```
