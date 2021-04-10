@@ -322,7 +322,7 @@ export default {
     //   const _this = this;
     //   promise(caption).then(function(caption) {
     //     axios
-    //       .post("/api/captions/", caption)
+    //       .post("/app/captions/", caption)
     //       .then(response => {
     //         _this.$store.dispatch("loadCaptions");
     //         console.log(response);
