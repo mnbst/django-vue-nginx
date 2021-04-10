@@ -34,6 +34,12 @@ docker-compose -f docker-compose.yml up -d --build
 ``` 
 app/backend/settings.pyでDEBUG_CELERY=Trueとすればceleryタスクをでバックできます。
 http://localhost:8000/
+
+#### ユーザー作成
+
+```
+docker-compose exec django python manage.py createsuperuser
+```
 ### prod 
 ```
 docker-compose -f docker-compose.prod.yml up -d --build
