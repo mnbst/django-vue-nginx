@@ -10,6 +10,7 @@ class Word(models.Model):
     word = models.CharField(max_length=50, unique=True)
     meaning = models.CharField(max_length=200, default="")
     ng = models.BooleanField(default=False)
+    is_edited = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["word"]
