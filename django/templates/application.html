@@ -13,36 +13,16 @@
 </head>
 
 <body>
-{% if user.is_anonymous %}
-    <form action="" method="POST">
-        <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-body">
-                    {{ form.non_field_errors }}
-                    {% for field in form %}
-                        {{ field }}
-                        {{ field.errors }}
-                        <hr>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-success btn-lg btn-block">ログイン</button>
-                    <input type="hidden" name="next" value="{{ next }}"/>
-                    {% csrf_token %}
-                </div>
-            </div>
-        </div>
-    </form>
-{% else %}
-    <noscript>
-        <strong>We're sorry but frontend doesn't work properly without JavaScript enabled. Please enable it to
-            continue.</strong>
-    </noscript>
-    <script src="https://www.youtube.com/iframe_api"></script>
-    <div id="app">
-        <app></app>
-    </div>
-    {% render_bundle 'chunk-vendors' %}
-    {% render_bundle 'application' %}
-{% endif %}
+<noscript>
+    <strong>We're sorry but frontend doesn't work properly without JavaScript enabled. Please enable it to
+        continue.</strong>
+</noscript>
+<script src="https://www.youtube.com/iframe_api"></script>
+<div id="app">
+    <app></app>
+</div>
+{% render_bundle 'chunk-vendors' %}
+{% render_bundle 'application' %}
 </body>
 
 </html>
