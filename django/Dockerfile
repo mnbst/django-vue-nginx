@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.9.0-slim-buster
+FROM python:3.9.4-slim-buster
 
 ENV HOME=/usr/src/app
 

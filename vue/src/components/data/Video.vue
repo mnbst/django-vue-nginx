@@ -247,7 +247,7 @@ export default {
     //   const _this = this;
     //   promise(video).then(function(video) {
     //     axios
-    //       .post("/api/videos/", video)
+    //       .post("/app/videos/", video)
     //       .then(response => {
     //         console.log(response);
     //         _this.$store.dispatch("loadVideos");

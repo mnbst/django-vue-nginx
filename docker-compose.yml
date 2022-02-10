@@ -41,7 +41,7 @@ services:
     <<: *django
     container_name: celery
     ports: [ ]
-    command: celery -A api worker -l INFO
+    command: celery -A app worker -l INFO
     depends_on:
       - db
       - redis
